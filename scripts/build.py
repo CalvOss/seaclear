@@ -1,0 +1,5 @@
+s=open('src.html').read()
+s=s.replace('/*HOSTED*/[]', "[{id:'nt-darwin-harbour-bathy', maxzoom:18, bounds:[130.6941,-12.661,131.0135,-12.2929]}, {id:'nt-howard-channel-bathy', maxzoom:13, bounds:[130.8462,-12.1874,131.2577,-11.9805]}]")
+css=open('vendor/pkg/package/dist/mapbox-gl.css').read()
+s=s.replace('/*MAPBOX_CSS*/',css); open('site/index.html','w').write(s)
+open('site/test.html','w').write('<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}</style></head><body>'+s+'</body></html>')

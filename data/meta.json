@@ -1,0 +1,25 @@
+{
+ "bounds": [
+  114.38184633267791,
+  -28.556054140891142,
+  114.5683932694975,
+  -28.3257263300191
+ ],
+ "width": 1826,
+ "height": 2564,
+ "px_m": 10.0,
+ "min": -30.189037322998047,
+ "max": 123.16000366210938,
+ "source": "PG2016_Mean_Lidar.bag",
+ "crs": "GDA94 / MGA zone 50 (EPSG:28350)",
+ "vdatum": "Instantaneous water level (EPSG:5829)",
+ "native_res_m": 5.0,
+ "grid": [
+  3744,
+  5088
+ ],
+ "dem_zoom": [
+  10,
+  15
+ ]
+}
