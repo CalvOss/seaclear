@@ -9,9 +9,9 @@ Seabed depth maps for fishing and diving, built on Mapbox GL JS.
 
 ## Map
 
-- Left menu: survey settings (opacity, hillshade strength, contour interval, 3D), depth profile results, data and admin, and Settings (light / dark / auto mode, mini map, depth colour ramp).
-- Right panel: base map (Bathymetry, Nautical chart, Satellite, Outdoors), survey layer toggles, survey quality filter and reference layers (ocean depth from `mapbox.mapbox-bathymetry-v2`, labels, roads, boundaries, marine parks).
-- Right tool bar: move, zoom, measure, depth profile, reset north, mini map, layers.
+- Top left: menu and current area. Left rail: Select area (country, state, area, with survey details), Map layers, Base map, and the survey quality filter. Bottom left: map configuration (depth colours, shading, contours, display mode, 3D exaggeration) and the coordinates readout.
+- Top right: account (sign-in and billing are placeholders until identity management and payments are set up). Right tool bar: move, zoom, north, 3D, measure, depth profile, coordinates, mini map.
+- Survey bathymetry only shows once an area is chosen. Areas are presets in `REGIONS` and surveys in `SURVEYS` in `scripts/src.html`; add entries there to extend them.
 - Marine parks: set `MARINE_PARKS` in `scripts/src.html` once a boundary tileset exists.
 
 Survey quality stars come from grid resolution: 5 m or better 5 stars, 5 to 10 m 4, 10 to 30 m 3, 30 to 50 m 2, coarser than 50 m 1.
