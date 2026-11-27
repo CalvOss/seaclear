@@ -1,4 +1,6 @@
-"""BAG -> web assets: depth.png (mercator, terrain-RGB encoded), DEM tiles, contours.geojson, meta.json"""
+"""BAG -> web assets: depth.png (mercator, terrain-RGB encoded), DEM tiles, contours.geojson, meta.json
+The DEM tiles keep land heights for the 3D view only. Hillshade is never computed above sea level:
+the page and shade_rgba.py shade bathymetry (elevation < 0) only."""
 import sys, os, json, math
 import numpy as np, h5py
 from pyproj import Transformer
