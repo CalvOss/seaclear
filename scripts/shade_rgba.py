@@ -1,5 +1,7 @@
 """Depth GeoTIFF (EPSG:3857, Float32, nodata set) -> RGBA GeoTIFF of shaded depth colours (Reef ramp 0-30 m).
 Processes in row strips so 1 m grids of any size fit in memory.
+Hillshade rule: only bathymetry (below sea level) is shaded. Land cells are transparent, and land neighbours
+are clamped to 0 m before the slope is taken so the shoreline does not shade as a cliff.
 usage: shade_rgba.py in_3857.tif out_rgba.tif"""
 import sys, numpy as np, rasterio
 from rasterio.windows import Window
@@ -28,7 +30,8 @@ with rasterio.open(SRC) as src:
                 dst.write(np.zeros((4, h, W), np.uint8), window=Window(0, y0, W, h)); continue
             # fill nodata with the strip median so edges don't shade as cliffs
             fill = np.where(valid, z, np.median(z[valid]))
-            p = np.pad(fill, ((1 if r0 == y0 else 0, 1 if r1 == y0 + h else 0), (1, 1)), mode='edge')
+            sea = np.minimum(fill, 0)                  # nothing above sea level feeds the hillshade
+            p = np.pad(sea, ((1 if r0 == y0 else 0, 1 if r1 == y0 + h else 0), (1, 1)), mode='edge')
             a, b, c = p[:-2, :-2], p[:-2, 1:-1], p[:-2, 2:]
             d, f = p[1:-1, :-2], p[1:-1, 2:]
             g, hh, q = p[2:, :-2], p[2:, 1:-1], p[2:, 2:]
