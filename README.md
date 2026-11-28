@@ -11,6 +11,7 @@ Seabed depth maps for fishing and diving, built on Mapbox GL JS.
 
 - Top left: menu and current area. Left rail: Select area (country, state, area, with survey details), Map layers, Base map, and the survey quality filter. Bottom left: map configuration (depth colours, shading, contours, display mode, 3D exaggeration) and the coordinates readout.
 - Top right: account (sign-in and billing are placeholders until identity management and payments are set up). Right tool bar: move, zoom, north, 3D, measure, depth profile, coordinates, mini map.
+- Planning mode (calendar button on the tool bar): the mini map is replaced by a conditions panel for the map centre or a tapped spot, with a 7-day tide curve, swell bars, wind arrows and current, plus a day and hour picker. Data is from the Open-Meteo marine and forecast APIs (free for non-commercial use, CC BY 4.0). The tide is Open-Meteo's modelled sea level, which is approximate near the coast, until FES2022 tide predictions are added.
 - Survey bathymetry only shows once an area is chosen. Areas are presets in `REGIONS` and surveys in `SURVEYS` in `scripts/src.html`; add entries there to extend them.
 - Marine parks: set `MARINE_PARKS` in `scripts/src.html` once a boundary tileset exists.
 
