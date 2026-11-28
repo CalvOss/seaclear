@@ -4,10 +4,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 /* VOICE everyday tool for fishers and divers, chart-room precise
-   IDEA a nautical chart you can restyle: sea colours, depth bands, magenta course line
-   LAYOUT map full bleed; config menu on the left, layer panel + tool icons on the right, movable mini map */
+   LAYOUT map full bleed. Left: brand bar, icon rail (area, layers, base map), quality pill, one drawer at a time,
+   map configuration (wrench) and coordinates bottom left. Right: account button, tool bar, movable mini map. */
 /*MAPBOX_CSS*/
-:root{color-scheme:light dark;--paper:light-dark(#ffffff,#0d1c24);--paper2:light-dark(#f1f6f8,#13262f);--ink:light-dark(#13242e,#e3eef2);--muted:light-dark(#4e6672,#97adb6);--line:light-dark(#d3e0e6,#26404c);--sea:light-dark(#1667c4,#5aa9ff);--mag:light-dark(#d6127e,#ff5aa8);--sand:#c9a46a;--water:light-dark(#cfe8f5,#173d55);--gold:light-dark(#c48a00,#f2c14e)}
+:root{color-scheme:light dark;--paper:light-dark(#ffffff,#0d1c24);--paper2:light-dark(#f1f6f8,#13262f);--ink:light-dark(#13242e,#e3eef2);--muted:light-dark(#4e6672,#97adb6);--line:light-dark(#d3e0e6,#26404c);--sea:light-dark(#1667c4,#5aa9ff);--mag:light-dark(#d6127e,#ff5aa8);--sand:#c9a46a;--water:light-dark(#cfe8f5,#173d55);--gold:light-dark(#c48a00,#f2c14e);--seaT:light-dark(#e3effb,#14324a)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%;margin:0}
@@ -15,37 +15,78 @@ body{background:#0b2433;color:var(--ink);font:15px/1.45 Overpass,system-ui,sans-
 button,input,select{font:inherit;color:inherit}
 #map{position:fixed;inset:0}
 .card{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(4,18,28,.18)}
-#note{position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(420px,calc(100vw - 32px));padding:8px 12px;font-size:13px;z-index:6}
-#readout{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));padding:6px 12px;font-size:13px;white-space:nowrap;z-index:3;font-variant-numeric:tabular-nums}
-#readout b{font-size:15px}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ib{width:40px;height:40px;border:0;background:none;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none;position:relative}
+.ib:hover{background:var(--paper2)}
+.ib[aria-pressed=true],.ib[aria-expanded=true]{background:var(--sea);color:#fff}
+.ib:focus-visible,button:focus-visible{outline:2px solid var(--sea);outline-offset:1px}
+#note{position:fixed;bottom:calc(70px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(420px,calc(100vw - 32px));padding:8px 12px;font-size:13px;z-index:8}
 #drawbar{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:6px 6px 6px 14px;z-index:7;border-color:var(--mag);max-width:calc(100vw - 32px)}
 #drawbar.measure{border-color:var(--sea)}#drawbar.measure .primary{background:var(--sea);border-color:var(--sea)}
 #drawbar span{font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.icon{border:0;background:none;width:36px;height:36px;border-radius:8px;cursor:pointer;display:grid;place-items:center;color:var(--muted);flex:none}
-.icon:hover{background:var(--paper2);color:var(--ink)}
-svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* left: config menu */
-#menu{position:fixed;z-index:5;top:12px;left:12px;bottom:12px;width:360px;display:flex;flex-direction:column;overflow:hidden;transition:transform .2s ease}
-#menu.closed{transform:translateX(calc(-100% - 24px))}
-.mhead{display:flex;align-items:flex-start;gap:8px;padding:12px 10px 6px 16px}
-.mhead div{flex:1}
-.mhead h1{font-size:20px;line-height:1.05;letter-spacing:-.02em;font-weight:800;margin:0}
-.mhead p{margin:3px 0 0;color:var(--muted);font-size:13px}
-#menuOpen{position:fixed;z-index:5;top:12px;left:12px;display:flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;cursor:pointer;font-weight:800;font-size:17px;letter-spacing:-.01em}
-.tabs{display:flex;border-bottom:1px solid var(--line)}
-.tabs button{flex:1;background:none;border:0;padding:10px 4px 8px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer;min-height:42px}
-.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--sea)}
-#legendWrap{padding:10px 16px 8px}
-#legend{display:block;width:100%;height:14px;border-radius:3px}
-#ticks{position:relative;height:16px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-#ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
-#ticks span:first-child{transform:none}#ticks span:last-child{transform:translateX(-100%)}
-.body{overflow-y:auto;padding:4px 16px 20px;flex:1}
-.body h2{font-size:13px;font-weight:600;color:var(--muted);margin:16px 0 8px}
+/* left: brand bar, rail, quality pill */
+#brand{position:fixed;z-index:6;top:12px;left:12px;height:50px;display:flex;align-items:center;gap:4px;padding:0 10px 0 5px;max-width:calc(100vw - 90px)}
+#brand h1{font-size:19px;letter-spacing:-.02em;font-weight:800;margin:0 6px 0 2px;white-space:nowrap}
+#crumb{border:0;background:var(--paper2);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+#crumb.set{color:var(--ink)}
+#leftcol{position:fixed;z-index:5;top:72px;left:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+#rail{display:flex;flex-direction:column;gap:2px;padding:4px}
+#qualBtn{width:52px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 5px;cursor:pointer;font-size:10.5px;font-weight:800;line-height:1.1;white-space:nowrap;color:var(--ink)}
+#qualBtn .q{font-size:17px;color:var(--gold);line-height:1}
+#qualBtn[aria-expanded=true]{border-color:var(--sea);box-shadow:0 0 0 2px var(--sea)}
+#qualPop{position:fixed;z-index:7;width:260px;padding:6px 0}
+#qualPop h3{font-size:13px;margin:4px 14px 6px;font-weight:800}
+#cfgBtn{position:fixed;z-index:5;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:50px;height:50px;padding:4px;display:grid;place-items:center}
+#coords{position:fixed;z-index:5;left:70px;bottom:calc(12px + env(safe-area-inset-bottom,0px));min-height:50px;padding:6px 12px;font-size:13px;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;justify-content:center;line-height:1.3}
+#coords[hidden]{display:none}
+#coords b{font-size:15px}
+.mapboxgl-ctrl-bottom-left{bottom:calc(66px + env(safe-area-inset-bottom,0px));left:var(--padL,0px)}
+
+/* drawer */
+#drawer{position:fixed;z-index:6;top:72px;left:76px;bottom:74px;width:350px;display:flex;flex-direction:column;overflow:hidden}
+#drawer[hidden]{display:none}
+.dhead{display:flex;align-items:center;gap:4px;padding:8px 6px 8px 8px;border-bottom:1px solid var(--line)}
+.dhead h2{flex:1;font-size:17px;font-weight:800;letter-spacing:-.01em;margin:0 0 0 4px}
+.dbody{flex:1;overflow-y:auto;padding:4px 16px 20px}
+.view[hidden]{display:none}
+.dbody h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 6px}
+.hint{font-size:13px;color:var(--muted);margin:4px 0 8px}
+.mitem{display:flex;align-items:center;gap:12px;border:0;background:none;padding:10px 8px;margin:0 -8px;width:calc(100% + 16px);border-radius:10px;cursor:pointer;text-align:left}
+.mitem:hover{background:var(--paper2)}
+.mitem .mi{width:38px;height:38px;border-radius:10px;background:var(--seaT);color:var(--sea);display:grid;place-items:center;flex:none}
+.mitem b{display:block;font-size:15px}
+.mitem small{display:block;font-size:13px;color:var(--muted)}
+.mitem>span{flex:1}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
 .row label{flex:1}
-.hint{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.lrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);min-height:46px;font-size:15px}
+.lrow label{flex:1;cursor:pointer}
+.lrow small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+input.sw{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;flex:none;margin:0}
+input.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+input.sw:checked{background:var(--sea)}input.sw:checked::after{transform:translateX(16px)}
+input.sw:disabled{opacity:.4;cursor:not-allowed}
+.bm{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.bm button{border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:5px;cursor:pointer;text-align:left;font-size:14px;font-weight:700}
+.bm button[aria-pressed=true]{border-color:var(--sea);background:var(--seaT)}
+.bm i{display:block;height:64px;border-radius:8px;margin-bottom:5px}
+.bm small{display:block;font-weight:400;font-size:12px;color:var(--muted);line-height:1.3;margin-top:1px}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:12px 0 4px;font-size:13px}
+.crumbs button{border:0;background:var(--paper2);border-radius:999px;padding:4px 10px;cursor:pointer;font-weight:600;font-size:13px}
+.crumbs span{color:var(--muted)}
+.pick{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--paper);border-radius:12px;padding:10px 12px;margin:8px 0;cursor:pointer;text-align:left}
+.pick:hover{border-color:var(--sea)}
+.pick>span{flex:1}
+.pick b{display:block;font-size:15px}
+.pick small{display:block;color:var(--muted);font-size:12.5px}
+.area{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+.area.sel{border-color:var(--sea);box-shadow:inset 0 0 0 1px var(--sea)}
+.area.off{opacity:.55}
+.area h4{margin:0;font-size:16px}
+.area .sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:2px 0 8px}
+.area .acts{display:flex;gap:8px;flex-wrap:wrap}
+.area dl{margin-top:10px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;cursor:pointer;min-height:36px;font-size:14px}
 .chip[aria-pressed=true]{background:var(--sea);border-color:var(--sea);color:#fff}
@@ -53,70 +94,69 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .seg button{flex:1;border:0;background:var(--paper);padding:8px 6px;cursor:pointer;font-weight:600;font-size:14px}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed=true]{background:var(--sea);color:#fff}
-.ramp{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.ramp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .ramp button{border:2px solid transparent;background:var(--paper2);border-radius:10px;padding:6px;cursor:pointer;text-align:left;font-size:13px}
 .ramp button[aria-pressed=true]{border-color:var(--sea)}
 .ramp i{display:block;height:12px;border-radius:3px;margin-bottom:4px}
+#legend{display:block;width:100%;height:14px;border-radius:3px}
+#ticks{position:relative;height:16px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+#ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+#ticks span:first-child{transform:none}#ticks span:last-child{transform:translateX(-100%)}
 input[type=range]{width:100%;accent-color:var(--sea);height:28px}
-input[type=checkbox]{width:20px;height:20px;accent-color:var(--sea)}
-select,input[type=number],input[type=text]{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 10px;font-size:16px}
+input[type=checkbox]:not(.sw){width:20px;height:20px;accent-color:var(--sea)}
+select,input[type=number],input[type=text],input[type=email]{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 10px;font-size:16px}
 .btn{border:1px solid var(--line);background:var(--paper2);border-radius:8px;padding:8px 14px;cursor:pointer;min-height:40px;font-weight:600;white-space:nowrap}
+.btn.sm{min-height:32px;padding:4px 12px;font-size:14px}
 .btn.primary{background:var(--mag);border-color:var(--mag);color:#fff}
 .btn.blue{background:var(--sea);border-color:var(--sea);color:#fff}
 .btn:hover{filter:brightness(1.06)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn[hidden]{display:none}
 .stop{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;margin-bottom:6px}
 .stop input[type=color]{width:44px;height:36px;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--paper)}
 .stop .d{display:flex;align-items:center;gap:6px}.stop .d input{width:86px}
 .val{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;white-space:nowrap}
-#chart{position:relative;height:190px;margin:4px 0 6px;touch-action:none}
-#chart svg{position:absolute;inset:0;width:100%;height:100%}
-#chart svg text{font-size:12px;fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-width:3px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0}
-.stats div{background:var(--paper2);border-radius:8px;padding:8px 10px}
-.stats b{display:block;font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.stats span{font-size:12px;color:var(--muted)}
-.empty{background:var(--paper2);border-radius:10px;padding:14px;color:var(--muted);font-size:14px}
-dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:14px;margin:0}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:13.5px;margin:0}
 dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere}
+dd a{color:var(--sea)}
 .warn{border-left:3px solid var(--mag);padding:6px 10px;background:var(--paper2);font-size:13px;margin:12px 0}
 .stars{color:var(--gold);letter-spacing:1px;white-space:nowrap}
 .stars s{color:var(--line);text-decoration:none}
-.slist{list-style:none;padding:0;margin:0}
-.slist li{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
-.slist li.off{opacity:.45}
-
-/* right: layer panel + tools */
-#rhs{position:fixed;z-index:5;top:12px;right:12px;display:flex;align-items:flex-start;gap:8px;pointer-events:none}
-#rhs>*{pointer-events:auto}
-#edge{width:26px;height:52px;margin-top:10px;border:1px solid var(--line);border-right:0;border-radius:8px 0 0 8px;background:var(--paper2);color:var(--muted);cursor:pointer;font-size:16px;display:grid;place-items:center;box-shadow:-2px 2px 6px rgba(4,18,28,.12);margin-right:-8px}
-#layers{width:300px;max-height:calc(100dvh - 24px);scrollbar-width:thin;overflow-y:auto;padding:0 0 6px}
-#layers[hidden]{display:none}
-body.mini-br #layers{max-height:calc(100dvh - 230px)}
-.lgroup{background:var(--paper2);padding:6px 14px;font-weight:800;font-size:13px;letter-spacing:.01em;border-bottom:1px solid var(--line)}
-.lgroup:first-child{border-radius:12px 12px 0 0}
-.lrow{display:flex;align-items:center;gap:10px;padding:5px 14px;border-bottom:1px solid var(--line);min-height:40px;font-size:14px}
-.lrow label{flex:1;cursor:pointer}
-.lrow small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
-.lrow:last-child{border-bottom:0}
-.lrow input.sw{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;flex:none;margin:0}
-.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
-.lrow input.sw:checked{background:var(--sea)}.sw:checked::after{transform:translateX(16px)}
-.lrow input.sw:disabled{opacity:.4;cursor:not-allowed}
-.sw:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
-.bm{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)}
-.bm button{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--paper);border-radius:9px;padding:3px 8px 3px 3px;cursor:pointer;text-align:left;font-size:13px;font-weight:600;min-height:38px}
-.bm button[aria-pressed=true]{border-color:var(--sea)}
-.bm i{display:block;width:30px;height:28px;border-radius:6px;flex:none}
 .key{width:14px;height:14px;border-radius:3px;flex:none;border:2px solid}
+
+/* right: account + tools */
+#rhs{position:fixed;z-index:6;top:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:8px}
+#userBtn{width:50px;height:50px;border-radius:50%;padding:0;overflow:hidden;cursor:pointer;display:grid;place-items:center;font-weight:800;font-size:17px;color:var(--sea)}
+#userBtn img{width:100%;height:100%;object-fit:cover}
 #tools{display:flex;flex-direction:column;align-items:center;padding:4px;gap:2px;width:50px}
-.tool{width:40px;height:40px;border:0;background:none;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
-.tool:hover{background:var(--paper2)}
-.tool[aria-pressed=true]{background:var(--sea);color:#fff}
-.tool:focus-visible{outline:2px solid var(--sea)}
 #tools hr{width:28px;border:0;border-top:1px solid var(--line);margin:3px 0}
-#zl{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1}
 #northIcon{transition:transform .1s}
+#userPanel{position:fixed;z-index:7;top:12px;right:72px;width:min(350px,calc(100vw - 84px));max-height:calc(100dvh - 24px);overflow-y:auto;padding:16px}
+#userPanel[hidden]{display:none}
+#userPanel h2{font-size:19px;margin:0;font-weight:800}
+#userPanel h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 6px}
+.sso{display:flex;align-items:center;gap:10px;width:100%;justify-content:flex-start;margin:6px 0;background:var(--paper)}
+.sso svg{width:18px;height:18px;flex:none}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--seaT);color:var(--sea);display:grid;place-items:center;font-size:24px;font-weight:800;overflow:hidden;flex:none}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.field{display:flex;flex-direction:column;gap:4px;margin:10px 0;font-size:13px;color:var(--muted)}
+.field input{color:var(--ink)}
+.plan{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}
+.plan b{font-size:16px}
+.or{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin:10px 0}
+.or::before,.or::after{content:"";flex:1;border-top:1px solid var(--line)}
+
+/* profile results */
+#profPanel{position:fixed;z-index:6;left:calc(50% + var(--padL,0px)/2);transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(620px,calc(100vw - 180px - var(--padL,0px)));padding:10px 14px 12px}
+#profPanel[hidden]{display:none}
+#chart{position:relative;height:170px;margin:4px 0 6px;touch-action:none}
+#chart svg{position:absolute;inset:0;width:100%;height:100%}
+#chart svg text{font-size:12px;fill:var(--muted);paint-order:stroke;stroke:var(--paper);stroke-width:3px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0}
+.stats div{background:var(--paper2);border-radius:8px;padding:6px 10px}
+.stats b{display:block;font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--muted)}
+.empty{background:var(--paper2);border-radius:10px;padding:14px;color:var(--muted);font-size:14px}
 
 /* mini map */
 #mini{position:fixed;z-index:4;width:230px;height:170px;display:flex;flex-direction:column;overflow:hidden;padding:0}
@@ -124,7 +164,7 @@ body.mini-br #layers{max-height:calc(100dvh - 230px)}
 .mm-bar{display:flex;align-items:center;gap:6px;padding:2px 4px 2px 10px;font-size:12px;font-weight:600;color:var(--muted);cursor:grab;touch-action:none;user-select:none;border-bottom:1px solid var(--line)}
 .mm-bar:active{cursor:grabbing}
 .mm-bar span{flex:1}
-.mm-bar .icon{width:26px;height:26px}
+.mm-bar .ib{width:26px;height:26px}
 #miniMap{flex:1;position:relative;cursor:pointer}
 
 /* admin modal */
@@ -147,20 +187,34 @@ th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);white-
 th{color:var(--muted);font-weight:600}
 .mapboxgl-popup-content{background:var(--paper);color:var(--ink);border-radius:10px;font:14px Overpass,sans-serif}
 .mapboxgl-popup-tip{border-top-color:var(--paper)!important;border-bottom-color:var(--paper)!important}
-.mapboxgl-ctrl-bottom-left{left:var(--padL,0px)}
 @media (max-width:699px){
-  #menu{top:0;left:0;bottom:0;width:min(360px,88vw);border-radius:0 12px 12px 0}
-  #layers{width:min(300px,calc(100vw - 90px));max-height:calc(100dvh - 90px)}
-  #drawbar{top:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px));flex-wrap:wrap}
+  #drawer{top:0;left:0;bottom:0;width:min(370px,90vw);border-radius:0 12px 12px 0;z-index:9}
+  #crumb{max-width:130px}
+  #drawbar{top:auto;bottom:calc(76px + env(safe-area-inset-bottom,0px));flex-wrap:wrap}
   #drawbar span{flex:1 0 100%}
   #mini{width:170px;height:130px}
+  #profPanel{width:calc(100vw - 24px);bottom:72px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #coords{left:68px;right:72px}
 }
-@media (prefers-reduced-motion:reduce){.steps li.run i{animation:none}#menu{transition:none}}
+@media (prefers-reduced-motion:reduce){.steps li.run i{animation:none}}
 </style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+</svg>
 
 <div id="map"></div>
 <div id="note" class="card" hidden></div>
-<div id="readout" class="card" hidden></div>
 <div id="drawbar" class="card" hidden>
   <span id="drawMsg"></span>
   <button class="btn" id="undoPt">Undo</button>
@@ -168,118 +222,164 @@ th{color:var(--muted);font-weight:600}
   <button class="btn" id="cancelPt">Cancel</button>
 </div>
 
-<button id="menuOpen" class="card" aria-label="Open the SeaClear menu" hidden><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>SeaClear</button>
-<aside id="menu" class="card" aria-label="SeaClear menu">
-  <header class="mhead">
-    <div><h1>SeaClear</h1><p>Seabed depths for fishing and diving</p></div>
-    <button class="icon" id="menuClose" aria-label="Collapse menu" title="Collapse menu"><svg class="i" viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
-  </header>
-  <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="survey" aria-selected="true">Survey</button>
-    <button role="tab" data-tab="profile" aria-selected="false">Profile</button>
-    <button role="tab" data-tab="data" aria-selected="false">Data</button>
-    <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
+<!-- left -->
+<header id="brand" class="card">
+  <button class="ib" id="menuBtn" aria-label="Menu" title="Menu" data-view="menu"><svg class="i"><use href="#i-menu"/></svg></button>
+  <h1>SeaClear</h1>
+  <button id="crumb" title="Choose an area">Choose an area</button>
+</header>
+<div id="leftcol">
+  <nav id="rail" class="card" aria-label="Map panels">
+    <button class="ib" data-view="area" aria-label="Select area" title="Select area"><svg class="i"><use href="#i-pin"/></svg></button>
+    <button class="ib" data-view="layers" aria-label="Map layers" title="Map layers"><svg class="i"><use href="#i-layers"/></svg></button>
+    <button class="ib" data-view="base" aria-label="Base map" title="Base map"><svg class="i"><use href="#i-map"/></svg></button>
   </nav>
-  <div id="legendWrap"><div class="val" style="margin-bottom:4px">Depth below water, metres</div><canvas id="legend" width="320" height="14"></canvas><div id="ticks"></div></div>
+  <button id="qualBtn" class="card" aria-haspopup="true" aria-expanded="false" aria-label="Survey quality filter"><span id="qualTxt" style="display:contents"></span></button>
+</div>
+<div id="qualPop" class="card" hidden role="dialog" aria-label="Survey quality">
+  <h3>Show surveys by quality</h3>
+  <div id="quality"></div>
+  <p class="hint" style="margin:6px 14px">Stars come from grid resolution. Hidden surveys drop out of the map and the area list.</p>
+</div>
+<button id="cfgBtn" class="card ib" data-view="config" aria-label="Map configuration" title="Map configuration"><svg class="i"><use href="#i-wrench"/></svg></button>
+<div id="coords" class="card" hidden aria-live="polite"></div>
 
-  <div class="body" data-pane="survey">
-    <h2>Go to survey</h2>
-    <select id="area" aria-label="Survey area" style="width:100%"></select>
-    <h2>Depth colours</h2>
-    <div class="row"><label for="opacity">Opacity</label><span class="val" id="opacityV"></span></div>
-    <input type="range" id="opacity" min="0" max="1" step="0.05" value="0.85">
-    <div class="row"><label for="landOn">Colour land elevation too</label><input type="checkbox" id="landOn"></div>
-    <h2>Seabed hillshade</h2>
-    <div class="row"><label for="hs">Strength</label><span class="val" id="hsV"></span></div>
-    <input type="range" id="hs" min="0" max="1" step="0.05" value="0.6">
-    <p class="hint">Shading is applied below sea level only. Land is never hillshaded.</p>
-    <h2>Contours</h2>
-    <div class="chips" id="intervals"></div>
-    <div class="row"><label for="lblOn">Contour depth labels</label><input type="checkbox" id="lblOn" checked></div>
-    <h2>3D</h2>
-    <div class="row"><label for="t3d">3D seabed (tilt the map)</label><input type="checkbox" id="t3d"></div>
-    <div class="row"><label for="exag">Vertical exaggeration</label><span class="val" id="exagV"></span></div>
-    <input type="range" id="exag" min="1" max="10" step="0.5" value="4">
-    <p class="hint">Turn layers on and off, change the base map and filter by survey quality in the Layers panel on the right.</p>
+<aside id="drawer" class="card" hidden aria-labelledby="dTitle">
+  <div class="dhead">
+    <button class="ib" id="dBack" aria-label="Back to menu" title="Back to menu"><svg class="i"><use href="#i-back"/></svg></button>
+    <h2 id="dTitle">Menu</h2>
+    <button class="ib" id="dClose" aria-label="Close panel" title="Close"><svg class="i"><use href="#i-x"/></svg></button>
   </div>
+  <div class="dbody">
+    <section class="view" data-view="menu">
+      <button class="mitem" data-go="area"><i class="mi"><svg class="i"><use href="#i-pin"/></svg></i><span><b>Select area</b><small>Country, state, then area. Survey details</small></span><svg class="i"><use href="#i-next"/></svg></button>
+      <button class="mitem" data-go="layers"><i class="mi"><svg class="i"><use href="#i-layers"/></svg></i><span><b>Map layers</b><small>Bathymetry, contours, labels and more</small></span><svg class="i"><use href="#i-next"/></svg></button>
+      <button class="mitem" data-go="base"><i class="mi"><svg class="i"><use href="#i-map"/></svg></i><span><b>Base map</b><small>Bathymetry, nautical chart, satellite, outdoors</small></span><svg class="i"><use href="#i-next"/></svg></button>
+      <button class="mitem" data-go="config"><i class="mi"><svg class="i"><use href="#i-wrench"/></svg></i><span><b>Map configuration</b><small>Depth colours, shading, contours, display</small></span><svg class="i"><use href="#i-next"/></svg></button>
+      <button class="mitem" data-go="admin"><i class="mi"><svg class="i"><use href="#i-upload"/></svg></i><span><b>Survey uploads</b><small>Admin portal and data sources</small></span><svg class="i"><use href="#i-next"/></svg></button>
+      <button class="mitem" data-go="about"><i class="mi"><svg class="i"><use href="#i-info"/></svg></i><span><b>About and safety</b><small>What the depths mean</small></span><svg class="i"><use href="#i-next"/></svg></button>
+    </section>
 
-  <div class="body" data-pane="profile" hidden>
-    <div class="row" style="margin-top:8px"><button class="btn primary" id="drawBtn">Draw a profile line</button><button class="btn" id="clearProf">Clear</button></div>
-    <div id="profOut"></div>
-  </div>
+    <section class="view" data-view="area" hidden>
+      <p class="hint" style="margin-top:12px">Pick a country, then a state, then an area. Survey bathymetry appears once an area is chosen.</p>
+      <div class="crumbs" id="areaCrumbs"></div>
+      <div id="areaList"></div>
+    </section>
 
-  <div class="body" data-pane="data" hidden>
-    <h2>Surveys</h2>
-    <ul class="slist" id="slist"></ul>
-    <h2>PG2016 survey (WA)</h2>
-    <dl id="meta"></dl>
-    <p class="warn">Depths are relative to each survey's vertical datum (PG2016: water level at the time of the survey), not chart datum. Use for planning dives and fishing spots, never for navigation.</p>
-    <h2>Admin</h2>
-    <p style="margin:0 0 10px;font-size:14px;color:var(--muted)">Upload new surveys and publish them as map layers.</p>
-    <button class="btn blue" id="openAdmin">Open upload portal (mock-up)</button>
-    <h2>Mapbox token</h2>
-    <div class="row"><input type="text" id="token" aria-label="Mapbox public token" style="flex:1;font-size:13px"><button class="btn" id="saveToken">Use</button></div>
-  </div>
+    <section class="view" data-view="layers" hidden>
+      <h3>Map layers</h3>
+      <div class="lrow"><label for="bathyOn">Bathymetry<small>Survey depth colours for the chosen area</small></label><input class="sw" type="checkbox" id="bathyOn"></div>
+      <div class="lrow"><label for="hsOn">Seabed hillshade</label><input class="sw" type="checkbox" id="hsOn"></div>
+      <div class="lrow"><label for="ctOn">Depth contours</label><input class="sw" type="checkbox" id="ctOn"></div>
+      <div class="lrow"><label for="outlineOn">Survey outlines<small>Coloured by survey quality</small></label><input class="sw" type="checkbox" id="outlineOn"></div>
+      <h3>Reference layers</h3>
+      <div class="lrow"><label for="oceanOn">Ocean depth<small>Mapbox bathymetry, worldwide</small></label><input class="sw" type="checkbox" id="oceanOn"></div>
+      <div class="lrow"><label for="labelsOn">Labels</label><input class="sw" type="checkbox" id="labelsOn"></div>
+      <div class="lrow"><label for="roadsOn">Roads</label><input class="sw" type="checkbox" id="roadsOn"></div>
+      <div class="lrow"><label for="bndOn">Boundaries</label><input class="sw" type="checkbox" id="bndOn"></div>
+      <div class="lrow"><label for="parksOn">Marine parks<small id="parksNote">Coming soon: no boundary source yet</small></label><input class="sw" type="checkbox" id="parksOn" disabled></div>
+    </section>
 
-  <div class="body" data-pane="settings" hidden>
-    <h2>Appearance</h2>
-    <div class="seg" id="theme" role="group" aria-label="Colour mode">
-      <button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button>
-    </div>
-    <div class="row"><label for="miniOn">Show mini map</label><input type="checkbox" id="miniOn"></div>
-    <h2>Depth colour ramp</h2>
-    <div class="ramp" id="ramps"></div>
-    <h2>Depth range</h2>
-    <div class="row"><label for="dmin">Shallowest colour at</label><span class="val" id="dminV"></span></div>
-    <input type="range" id="dmin" min="0" max="20" step="0.5" value="0">
-    <div class="row"><label for="dmax">Deepest colour at</label><span class="val" id="dmaxV"></span></div>
-    <input type="range" id="dmax" min="5" max="60" step="1" value="30">
-    <div class="row"><label for="banded">Stepped bands (chart style)</label><input type="checkbox" id="banded"></div>
-    <div class="row"><label for="band">Band size</label><select id="band"><option value="1">1 m</option><option value="2" selected>2 m</option><option value="5">5 m</option></select></div>
-    <h2>Custom ramp</h2>
-    <div id="stops"></div>
-    <div class="row"><button class="btn" id="addStop">Add stop</button><button class="btn" id="resetRamp">Reset to preset</button></div>
-    <h2>Reset</h2>
-    <button class="btn" id="resetAll">Restore default settings</button>
+    <section class="view" data-view="base" hidden>
+      <div class="bm" id="basemaps"></div>
+    </section>
+
+    <section class="view" data-view="config" hidden>
+      <h3>Display</h3>
+      <div class="seg" id="theme" role="group" aria-label="Colour mode"><button data-v="auto">Auto</button><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+      <h3>Bathymetry colours</h3>
+      <canvas id="legend" width="320" height="14"></canvas><div id="ticks"></div>
+      <div class="ramp" id="ramps" style="margin-top:10px"></div>
+      <div class="row"><label for="dmin">Shallowest colour at</label><span class="val" id="dminV"></span></div>
+      <input type="range" id="dmin" min="0" max="20" step="0.5">
+      <div class="row"><label for="dmax">Deepest colour at</label><span class="val" id="dmaxV"></span></div>
+      <input type="range" id="dmax" min="5" max="60" step="1">
+      <div class="row"><label for="banded">Stepped bands (chart style)</label><input type="checkbox" id="banded"></div>
+      <div class="row"><label for="band">Band size</label><select id="band"><option value="1">1 m</option><option value="2">2 m</option><option value="5">5 m</option></select></div>
+      <div class="row"><label for="opacity">Opacity</label><span class="val" id="opacityV"></span></div>
+      <input type="range" id="opacity" min="0" max="1" step="0.05">
+      <div class="row"><label for="landOn">Colour land elevation too</label><input type="checkbox" id="landOn"></div>
+      <h3>Custom ramp</h3>
+      <div id="stops"></div>
+      <div class="row"><button class="btn sm" id="addStop">Add stop</button><button class="btn sm" id="resetRamp">Reset to preset</button></div>
+      <h3>Seabed hillshade</h3>
+      <div class="row"><label for="hs">Strength</label><span class="val" id="hsV"></span></div>
+      <input type="range" id="hs" min="0" max="1" step="0.05">
+      <p class="hint">Shading is applied below sea level only. Land is never hillshaded.</p>
+      <h3>Contours</h3>
+      <div class="chips" id="intervals"></div>
+      <div class="row"><label for="lblOn">Contour depth labels</label><input type="checkbox" id="lblOn"></div>
+      <h3>3D seabed</h3>
+      <div class="row"><label for="exag">Vertical exaggeration</label><span class="val" id="exagV"></span></div>
+      <input type="range" id="exag" min="1" max="10" step="0.5">
+      <p class="hint">Turn 3D on with the cube on the right-hand tool bar.</p>
+      <h3>Mini map</h3>
+      <div class="row"><label for="miniOn">Show mini map</label><input type="checkbox" id="miniOn"></div>
+      <h3>Reset</h3>
+      <button class="btn" id="resetAll">Restore default settings</button>
+    </section>
+
+    <section class="view" data-view="admin" hidden>
+      <h3>Upload portal</h3>
+      <p class="hint">Upload new surveys and publish them as map layers.</p>
+      <button class="btn blue" id="openAdmin">Open upload portal (mock-up)</button>
+      <h3>Mapbox token</h3>
+      <div class="row"><input type="text" id="token" aria-label="Mapbox public token" style="flex:1;font-size:13px"><button class="btn" id="saveToken">Use</button></div>
+    </section>
+
+    <section class="view" data-view="about" hidden>
+      <h3>SeaClear</h3>
+      <p style="font-size:14px">Seabed depth maps for fishing and diving, built from public hydrographic and lidar surveys.</p>
+      <p class="warn">Depths are relative to each survey's vertical datum (for PG2016, the water level at the time of the survey), not chart datum. Use for planning dives and fishing spots, never for navigation.</p>
+      <h3>Survey quality key</h3>
+      <dl id="qkey"></dl>
+    </section>
   </div>
 </aside>
 
+<!-- right -->
 <div id="rhs">
-  <button id="edge" aria-label="Hide layers panel" title="Hide layers">»</button>
-  <aside id="layers" class="card" aria-label="Layers">
-    <div class="lgroup">Base map</div>
-    <div class="bm" id="basemaps"></div>
-    <div class="lgroup">Survey layers</div>
-    <div class="lrow"><label for="bathyOn">Survey depth colours</label><input class="sw" type="checkbox" id="bathyOn" checked></div>
-    <div class="lrow"><label for="hsOn">Seabed hillshade</label><input class="sw" type="checkbox" id="hsOn" checked></div>
-    <div class="lrow"><label for="ctOn">Depth contours</label><input class="sw" type="checkbox" id="ctOn" checked></div>
-    <div class="lrow"><label for="outlineOn">Survey outlines<small>Coloured by survey quality</small></label><input class="sw" type="checkbox" id="outlineOn" checked></div>
-    <div class="lgroup">Survey quality</div>
-    <div id="quality"></div>
-    <div class="lgroup">Reference layers</div>
-    <div class="lrow"><label for="oceanOn">Ocean depth<small>Mapbox bathymetry</small></label><input class="sw" type="checkbox" id="oceanOn" checked></div>
-    <div class="lrow"><label for="labelsOn">Labels</label><input class="sw" type="checkbox" id="labelsOn" checked></div>
-    <div class="lrow"><label for="roadsOn">Roads</label><input class="sw" type="checkbox" id="roadsOn" checked></div>
-    <div class="lrow"><label for="bndOn">Boundaries</label><input class="sw" type="checkbox" id="bndOn" checked></div>
-    <div class="lrow"><label for="parksOn">Marine parks<small id="parksNote">Coming soon: no boundary source yet</small></label><input class="sw" type="checkbox" id="parksOn" disabled></div>
-  </aside>
+  <button id="userBtn" class="card" aria-haspopup="dialog" aria-expanded="false" title="Account" aria-label="Account"></button>
   <div id="tools" class="card" role="toolbar" aria-label="Map tools" aria-orientation="vertical">
-    <button class="tool" id="tPan" data-mode="pan" aria-pressed="true" title="Move around" aria-label="Move around"><svg class="i" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></button>
-    <button class="tool" id="tIn" title="Zoom in" aria-label="Zoom in"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-    <span id="zl"></span>
-    <button class="tool" id="tOut" title="Zoom out" aria-label="Zoom out"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="ib" data-mode="pan" aria-pressed="true" title="Move around" aria-label="Move around"><svg class="i" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></button>
+    <button class="ib" id="tIn" title="Zoom in" aria-label="Zoom in"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button class="ib" id="tOut" title="Zoom out" aria-label="Zoom out"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="ib" id="tNorth" title="Reset to north" aria-label="Reset to north"><svg class="i" viewBox="0 0 24 24" id="northIcon"><path d="M12 3l4 9h-8z" fill="currentColor"/><path d="M12 21l-4-9h8z"/></svg></button>
+    <button class="ib" id="t3d" aria-pressed="false" title="3D seabed" aria-label="3D seabed"><svg class="i" viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg></button>
     <hr>
-    <button class="tool" id="tMeasure" data-mode="measure" aria-pressed="false" title="Measure distance" aria-label="Measure distance"><svg class="i" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0z"/><path d="M14.5 12.5l2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></svg></button>
-    <button class="tool" id="tProfile" data-mode="profile" aria-pressed="false" title="Depth profile" aria-label="Depth profile"><svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 9l4 6 4-3 5 5"/></svg></button>
-    <hr>
-    <button class="tool" id="tNorth" title="Reset to north" aria-label="Reset to north"><svg class="i" viewBox="0 0 24 24" id="northIcon"><path d="M12 3l4 9h-8z" fill="currentColor"/><path d="M12 21l-4-9h8z"/></svg></button>
-    <button class="tool" id="tMini" aria-pressed="false" title="Mini map" aria-label="Mini map"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="6" height="5"/></svg></button>
-    <button class="tool" id="tLayers" aria-pressed="true" title="Layers" aria-label="Layers"><svg class="i" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></button>
+    <button class="ib" data-mode="measure" aria-pressed="false" title="Measure distance" aria-label="Measure distance"><svg class="i" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0z"/><path d="M14.5 12.5l2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/></svg></button>
+    <button class="ib" data-mode="profile" aria-pressed="false" title="Depth profile" aria-label="Depth profile"><svg class="i" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 9l4 6 4-3 5 5"/></svg></button>
+    <button class="ib" id="tCoords" aria-pressed="false" title="Coordinates and depth" aria-label="Coordinates and depth"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></button>
+    <button class="ib" id="tMini" aria-pressed="false" title="Mini map" aria-label="Mini map"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="6" height="5"/></svg></button>
   </div>
 </div>
 
+<aside id="userPanel" class="card" hidden role="dialog" aria-label="Account">
+  <div class="row" style="align-items:flex-start;min-height:0"><h2>Account</h2><button class="ib" id="userClose" aria-label="Close account" style="width:32px;height:32px"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <p class="hint">Sign-in is coming soon. SeaClear will be a subscription service; accounts and billing switch on once identity and payments are set up.</p>
+  <button class="btn sso" data-sso="Google"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 0 1-2.1 3.1v2.6h3.4c2-1.8 3.1-4.5 3.1-7.5z"/><path fill="#34A853" d="M12 22c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H2.7v2.7A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.2 13.6a6 6 0 0 1 0-3.8V7.1H2.7a10 10 0 0 0 0 9.2z"/><path fill="#EA4335" d="M12 6c1.5 0 2.9.5 4 1.5l3-3A10 10 0 0 0 2.7 7.1l3.5 2.7C7 7.8 9.3 6 12 6z"/></svg>Continue with Google</button>
+  <button class="btn sso" data-sso="Microsoft"><svg viewBox="0 0 24 24"><path fill="#F25022" d="M3 3h8.5v8.5H3z"/><path fill="#7FBA00" d="M12.5 3H21v8.5h-8.5z"/><path fill="#00A4EF" d="M3 12.5h8.5V21H3z"/><path fill="#FFB900" d="M12.5 12.5H21V21h-8.5z"/></svg>Continue with Outlook / Microsoft</button>
+  <button class="btn sso" data-sso="Apple"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.7zM14.1 5.6c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.8 1 .1 2.1-.5 2.7-1.2z"/></svg>Continue with Apple</button>
+  <div class="or">or</div>
+  <div class="row" style="gap:6px"><input type="email" id="signEmail" placeholder="you@example.com" aria-label="Email address" style="flex:1;font-size:15px"><button class="btn" data-sso="Email">Email me a link</button></div>
+  <p class="hint" id="ssoMsg" hidden></p>
+  <h3>Profile</h3>
+  <div class="row" style="gap:14px"><div class="avatar" id="avatar"></div><div style="flex:1"><label class="btn sm" for="avatarFile" style="display:inline-block;cursor:pointer">Upload photo</label><input type="file" id="avatarFile" accept="image/*" hidden> <button class="btn sm" id="avatarDel">Remove</button></div></div>
+  <label class="field">Name<input type="text" id="pName" autocomplete="name"></label>
+  <label class="field">Email<input type="email" id="pEmail" autocomplete="email"></label>
+  <p class="hint">Saved on this device until accounts are switched on.</p>
+  <h3>Subscription and billing</h3>
+  <div class="plan"><div class="row" style="min-height:0"><b>Free preview</b><span class="val">$0</span></div><p class="hint" style="margin:4px 0 8px">Full access while SeaClear is in preview.</p><button class="btn blue" disabled>Upgrade (coming soon)</button></div>
+  <dl><dt>Payment method</dt><dd>None on file</dd><dt>Invoices</dt><dd>None yet</dd></dl>
+</aside>
+
+<aside id="profPanel" class="card" hidden aria-label="Depth profile">
+  <div class="row" style="min-height:0"><b style="font-size:15px">Depth profile</b><span style="flex:1"></span><button class="btn sm" id="copyCsv">Copy CSV</button><button class="ib" id="profClose" aria-label="Close profile" style="width:32px;height:32px"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div id="profOut"></div>
+</aside>
+
 <div id="mini" class="card" hidden>
-  <div class="mm-bar" id="miniBar" title="Drag to move"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg><span>Overview</span><button class="icon" id="miniClose" aria-label="Hide mini map"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="mm-bar" id="miniBar" title="Drag to move, double-click to reset"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg><span>Overview</span><button class="ib" id="miniClose" aria-label="Hide mini map"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button></div>
   <div id="miniMap"></div>
 </div>
 
@@ -290,7 +390,7 @@ th{color:var(--muted);font-weight:600}
     <div id="job" hidden>
       <div class="row"><b id="jobName"></b><span class="val" id="jobSize"></span></div>
       <ol class="steps" id="steps"></ol>
-      <p class="warn" id="jobNote">Simulated run. A real portal would hand this file to a processing worker and add the result below.</p>
+      <p class="warn">Simulated run. A real portal would hand this file to a processing worker and add the result below.</p>
     </div>
     <h2 style="font-size:13px;color:var(--muted);font-weight:600">Datasets</h2>
     <div class="scroll"><table><thead><tr><th>Name</th><th>Resolution</th><th>Quality</th><th>Depths</th><th>Status</th></tr></thead><tbody id="dsRows"></tbody></table></div>
@@ -311,6 +411,7 @@ const DEFAULT_TOKEN = 'pk.eyJ1IjoiY2Fsdm9zcyIsImEiOiJjbXd4aGJiNXIwMTRzMzBwbnU0ZX
 const DATA = new URL('data/', document.baseURI).href;
 const $ = id => document.getElementById(id);
 const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const PRESETS = {
   reef:   {name:'Reef', stops:[[0,'#dcfcf3'],[.07,'#8ee8d8'],[.17,'#3cc6c9'],[.35,'#1793c2'],[.65,'#0f5a9b'],[1,'#0a2b62']], banded:false},
@@ -319,14 +420,30 @@ const PRESETS = {
   viridis:{name:'Viridis', stops:[[0,'#fde725'],[.25,'#5ec962'],[.5,'#21918c'],[.75,'#3b528b'],[1,'#440154']], banded:false},
   mono:   {name:'Deep blue', stops:[[0,'#c4e6f2'],[.4,'#4a90c8'],[1,'#071f3f']], banded:false}
 };
-// Survey catalogue. `title` matches the `survey` / `title` fields in the hosted vector tilesets;
+// Survey catalogue. `title` matches the `survey` / `title` fields in the hosted vector tilesets.
 // `res` is the grid resolution in metres and sets the quality stars.
-const SURVEYS = [
-  {id:'pg2016', title:'PG2016 Mean Lidar', name:'WA · Mid West (PG2016 lidar)', year:2016, res:5, depths:'0 to 30 m', bounds:[[114.3818,-28.5561],[114.5684,-28.3257]]},
-  {id:'nt-darwin-harbour', title:'Darwin Harbour 2010', name:'NT · Darwin Harbour (2010–2015)', year:2010, res:1, depths:'0 to 35 m', bounds:[[130.69,-12.66],[131.01,-12.12]]},
-  {id:'nt-howard-channel', title:'Howard Channel 2023 (AHO HIPP SI1046)', name:'NT · Howard Channel (2023)', year:2023, res:30, depths:'2 to 73 m', bounds:[[130.846,-12.187],[131.258,-11.981]]},
-  {id:'nt-bynoe-harbour', title:'Bynoe Harbour 2016', name:'NT · Bynoe Harbour (2016)', year:2016, res:2, depths:'', bounds:[[130.51,-12.84],[130.83,-12.50]]}
+const SURVEYS = {
+  'pg2016': {title:'PG2016 Mean Lidar', name:'PG2016 Mean Lidar', year:'2016', res:5, depths:'0 to 30 m', sensor:'Airborne lidar', datum:'Instantaneous water level', source:'WA Department of Transport'},
+  'nt-darwin-harbour': {title:'Darwin Harbour 2010', name:'Darwin Harbour 2010–2015', year:'2010–2015', res:1, depths:'0 to 35 m', sensor:'Kongsberg EM3002D multibeam', source:'Geoscience Australia', url:'http://pid.geoscience.gov.au/dataset/ga/144146'},
+  'nt-howard-channel': {title:'Howard Channel 2023 (AHO HIPP SI1046)', name:'Howard Channel 2023 (AHO)', year:'2023', res:30, depths:'2 to 73 m', sensor:'Kongsberg EM2040D/C multibeam', datum:'Mean sea level', source:'Australian Hydrographic Office', licence:'CC BY 4.0'}
+};
+// Area presets: country > state > area. Each level has a zoom box; an area lists the surveys it shows.
+// Add a state or an area by adding an entry here.
+const REGIONS = [
+  {id:'au', name:'Australia', bounds:[[112,-44],[154,-10]], states:[
+    {id:'wa', name:'Western Australia', bounds:[[112.9,-35.2],[129,-13.6]], areas:[
+      {id:'wa-midwest', name:'Mid West (Horrocks)', bounds:[[114.3818,-28.5561],[114.5684,-28.3257]], surveys:['pg2016']}]},
+    {id:'nt', name:'Northern Territory', bounds:[[129,-26],[138,-10.9]], areas:[
+      {id:'nt-darwin', name:'Darwin Harbour', bounds:[[130.69,-12.66],[131.01,-12.29]], surveys:['nt-darwin-harbour']},
+      {id:'nt-howard', name:'Howard Channel', bounds:[[130.846,-12.187],[131.258,-11.981]], surveys:['nt-howard-channel']}]},
+    {id:'qld', name:'Queensland', bounds:[[138,-29.2],[153.6,-10.6]], areas:[]},
+    {id:'nsw', name:'New South Wales', bounds:[[141,-37.5],[153.7,-28.1]], areas:[]},
+    {id:'vic', name:'Victoria', bounds:[[140.9,-39.2],[150,-34]], areas:[]},
+    {id:'sa', name:'South Australia', bounds:[[129,-38.1],[141,-26]], areas:[]},
+    {id:'tas', name:'Tasmania', bounds:[[143.8,-43.7],[148.5,-39.5]], areas:[]}
+  ]}
 ];
+const AREAS = {}; REGIONS.forEach(c => c.states.forEach(s => s.areas.forEach(a => { AREAS[a.id] = {...a, state:s, country:c}; })));
 // Quality key: 5 m or better 5 stars, 5-10 m 4, 10-30 m 3, 30-50 m 2, coarser than 50 m 1
 const QUALITY = [[5,'5 m or better'],[4,'5 to 10 m'],[3,'10 to 30 m'],[2,'30 to 50 m'],[1,'Coarser than 50 m']];
 const starsOf = res => res <= 5 ? 5 : res <= 10 ? 4 : res <= 30 ? 3 : res <= 50 ? 2 : 1;
@@ -335,29 +452,37 @@ const QCOL = {5:'#14a37f', 4:'#5fb83a', 3:'#e0a100', 2:'#e06a1a', 1:'#c62a3c'};
 const starHtml = n => `<span class="stars" aria-label="${n} of 5 stars">${'★'.repeat(n)}<s>${'★'.repeat(5-n)}</s></span>`;
 const HOSTED = /*HOSTED*/[];
 const STATE_VECTORS = ['calvoss.wa-bathy-vectors', 'calvoss.nt-bathy-vectors'];
-// Marine park boundaries: no source yet. Set to {url:'mapbox://<tileset>', layer:'<source-layer>', name:'<field>'} to switch the toggle on.
+// Marine park boundaries: no source yet. Set to {url:'mapbox://<tileset>', layer:'<source-layer>'} to switch the toggle on.
 const MARINE_PARKS = null;
 const LAND = [[0,'#efe6bf'],[3,'#d3dca0'],[15,'#9cbf73'],[50,'#6f9152'],[125,'#8b6b48']];
 const BASEMAPS = {
-  bathy:    {name:'Bathymetry', sw:'linear-gradient(180deg,#eceff0 38%,#a9d6f0 38%,#4b97d1 70%,#163f7a)'},
-  nautical: {name:'Nautical chart', sw:'linear-gradient(180deg,#f3e38f 38%,#bfe2f7 38%,#bfe2f7 62%,#fff 62%)'},
-  satellite:{name:'Satellite', sw:'linear-gradient(135deg,#5b6b3a,#2f4a2a 40%,#1f4f6b 60%,#123850)'},
-  outdoors: {name:'Outdoors', sw:'linear-gradient(180deg,#e7efd8 38%,#cfe3c0 50%,#a9d6f0 50%)'}
+  bathy:    {name:'Bathymetry', note:'Ocean depth bands', sw:'linear-gradient(180deg,#eceff0 38%,#a9d6f0 38%,#4b97d1 70%,#163f7a)'},
+  nautical: {name:'Nautical chart', note:'Chart-style land and sea', sw:'linear-gradient(180deg,#f3e38f 38%,#bfe2f7 38%,#bfe2f7 62%,#fff 62%)'},
+  satellite:{name:'Satellite', note:'Imagery with place names', sw:'linear-gradient(135deg,#5b6b3a,#2f4a2a 40%,#1f4f6b 60%,#123850)'},
+  outdoors: {name:'Outdoors', note:'Topographic land detail', sw:'linear-gradient(180deg,#e7efd8 38%,#cfe3c0 50%,#a9d6f0 50%)'}
 };
 const DEFAULTS = {ramp:'reef', stops:PRESETS.reef.stops.map(s=>s.slice()), dmin:0, dmax:30, banded:false, band:2,
   opacity:.85, bathy:true, land:false, hs:true, hsK:.6, contours:true, interval:5, labels:true, t3d:false, exag:4,
   base:'bathy', theme:'auto', ocean:true, refLabels:true, roads:true, bounds:true, outlines:true, parks:false,
-  stars:{1:true,2:true,3:true,4:true,5:true}, mini:innerWidth >= 700, miniPos:null, menuOpen:innerWidth >= 700, layersOpen:innerWidth >= 700};
-const KEEP = Object.keys(DEFAULTS).filter(k => !['t3d'].includes(k));
+  stars:{1:true,2:true,3:true,4:true,5:true}, mini:innerWidth >= 700, miniPos:null, coords:false, area:null};
+const KEEP = Object.keys(DEFAULTS).filter(k => k !== 't3d');
 const S = JSON.parse(JSON.stringify(DEFAULTS));
 try { const saved = JSON.parse(store.get('seaclear.settings') || '{}'); KEEP.forEach(k => { if (saved[k] !== undefined) S[k] = saved[k]; }); } catch(e) {}
 if (!BASEMAPS[S.base]) S.base = 'bathy';
+if (S.area && !AREAS[S.area]) S.area = null;
 let saveT; const save = () => { clearTimeout(saveT); saveT = setTimeout(() => store.set('seaclear.settings', JSON.stringify(Object.fromEntries(KEEP.map(k => [k, S[k]])))), 300); };
 
-let meta, W, H, Z, valid, cv, ctx, imgData, px32, M0, M1, offline = false, shadeV, scv, sctx, simg, s32;
+let meta, W, H, Z, valid, cv, ctx, imgData, px32, M0, M1, offline = false, shadeV, scv, sctx, simg, s32, pgLoading = null;
 let profPts = [], prof = null, measPts = [], mode = 'pan', styleReady = false, baseVis = {};
 const OWN = new Set(['bathy','dem3d','shade','contours','prof','measure','ocean','parks']);
 HOSTED.forEach(r => OWN.add(r.id));
+
+/* ---------- survey visibility ---------- */
+const surveyOn = id => !!S.stars[starsOf(SURVEYS[id].res)];
+const inArea = id => !!S.area && AREAS[S.area].surveys.includes(id);
+const shows = id => inArea(id) && surveyOn(id);
+const areaOn = a => a.surveys.some(surveyOn);
+const pgOn = () => shows('pg2016') && !!Z;
 
 /* ---------- theme ---------- */
 const darkMQ = matchMedia('(prefers-color-scheme: dark)');
@@ -379,15 +504,21 @@ function interp(stops, t){
 }
 const sorted = () => S.stops.slice().sort((a,b)=>a[0]-b[0]);
 const pack = (r,g,b,a) => ((a<<24)|(b<<16)|(g<<8)|r)>>>0;
-function depthColor(d, st){ // d metres below water
+function depthColor(d, st){
   if (S.banded) d = (Math.floor(d/S.band)+.5)*S.band;
   return interp(st, (d - S.dmin)/Math.max(.1, S.dmax - S.dmin));
 }
 function paint(){
-  drawLegend(sorted());
+  const st = sorted();
+  drawLegend(st);
+  const lum = st.reduce((a, [, c]) => { const [r,g,b] = hex(c); return a + (0.299*r + 0.587*g + 0.114*b)/255; }, 0)/st.length;
+  const pale = (lum > .72 && S.bathy) || (!S.bathy && !isDark() && S.base !== 'satellite');
+  const ink = pale ? ['rgba(11,36,51,0.55)', 'rgba(11,36,51,0.9)', '#ffffff', '#0b2433'] : ['rgba(240,252,255,0.75)', 'rgba(255,255,255,0.95)', '#0b2433', '#ffffff'];
+  if (map.getLayer('contours')) { map.setPaintProperty('contours', 'line-color', ink[0]); map.setPaintProperty('contours-major', 'line-color', ink[1]); }
+  if (map.getLayer('contour-labels')) { map.setPaintProperty('contour-labels', 'text-halo-color', ink[2]); map.setPaintProperty('contour-labels', 'text-color', ink[3]); }
   if (!px32) return;
-  const st = sorted(), N = 1024, lut = new Uint32Array(N), span = 80, a = 255;
-  for (let i=0;i<N;i++){ const [r,g,b] = depthColor(i/(N-1)*span, st); lut[i] = pack(r,g,b,a); }
+  const N = 1024, lut = new Uint32Array(N), span = 80;
+  for (let i=0;i<N;i++){ const [r,g,b] = depthColor(i/(N-1)*span, st); lut[i] = pack(r,g,b,255); }
   const landLut = new Uint32Array(256);
   for (let i=0;i<256;i++){ const [r,g,b] = interp(LAND, i/255*130); landLut[i] = pack(r,g,b,235); }
   px32.fill(0);
@@ -397,18 +528,12 @@ function paint(){
     else if (S.land) px32[i] = landLut[Math.min(255, Math.round(h/130*255))];
   }
   ctx.putImageData(imgData, 0, 0);
-  // contour ink follows the ramp: dark lines on pale ramps, white lines on deep ones
-  const lum = st.reduce((a, [, c]) => { const [r,g,b] = hex(c); return a + (0.299*r + 0.587*g + 0.114*b)/255; }, 0)/st.length;
-  const pale = (lum > .72 && S.bathy) || (!S.bathy && !isDark() && S.base !== 'satellite');
-  const ink = pale ? ['rgba(11,36,51,0.55)', 'rgba(11,36,51,0.9)', '#ffffff', '#0b2433'] : ['rgba(240,252,255,0.75)', 'rgba(255,255,255,0.95)', '#0b2433', '#ffffff'];
-  if (map.getLayer('contours')) { map.setPaintProperty('contours', 'line-color', ink[0]); map.setPaintProperty('contours-major', 'line-color', ink[1]); }
-  if (map.getLayer('contour-labels')) { map.setPaintProperty('contour-labels', 'text-halo-color', ink[2]); map.setPaintProperty('contour-labels', 'text-color', ink[3]); }
   const src = map.getSource('bathy');
   if (src) { src.play(); map.once('render', () => src.pause()); }
 }
-// Hillshade rule: only cells below sea level are shaded. Land neighbours are clamped to 0 m so the
+// Hillshade rule: only cells below sea level are shaded; land neighbours are clamped to 0 m so the
 // shoreline does not read as a cliff, and nothing above sea level gets any shade.
-function computeShade(){ // Horn slope/aspect, sun from the north-west at 45 degrees
+function computeShade(){
   const cs = meta.px_m, zf = 3, Lx = -Math.SQRT1_2*Math.SQRT1_2, Ly = Math.SQRT1_2*Math.SQRT1_2, Lz = Math.SQRT1_2;
   shadeV = new Float32Array(W*H).fill(NaN);
   for (let k=0;k<valid.length;k++){
@@ -432,7 +557,8 @@ function paintShade(){
   if (src) { src.play(); map.once('render', () => src.pause()); }
 }
 function drawLegend(st){
-  const c = $('legend'), w = c.width = c.clientWidth*2 || 640, g = c.getContext('2d');
+  const c = $('legend'); if (!c.clientWidth) return;
+  const w = c.width = c.clientWidth*2, g = c.getContext('2d');
   c.height = 28;
   for (let x=0;x<w;x++){ const d = S.dmin + x/(w-1)*(S.dmax-S.dmin); const [r,gg,b] = depthColor(d, st); g.fillStyle=`rgb(${r},${gg},${b})`; g.fillRect(x,0,1,28); }
   const n = 5, ticks = [];
@@ -442,7 +568,7 @@ function drawLegend(st){
 
 /* ---------- sampling ---------- */
 function depthAt(lng, lat){
-  if (!Z) return null;
+  if (!pgOn()) return null;
   const m = mapboxgl.MercatorCoordinate.fromLngLat({lng, lat});
   const fx = (m.x-M0.x)/(M1.x-M0.x)*W - .5, fy = (m.y-M0.y)/(M1.y-M0.y)*H - .5;
   const x0 = Math.floor(fx), y0 = Math.floor(fy);
@@ -452,15 +578,15 @@ function depthAt(lng, lat){
   if (v.some(Number.isNaN)) { const near = Z[Math.round(fy)*W+Math.round(fx)]; return Number.isNaN(near) ? null : near; }
   return v[0]*(1-tx)*(1-ty) + v[1]*tx*(1-ty) + v[2]*(1-tx)*ty + v[3]*tx*ty;
 }
-const fmtH = h => h == null ? 'no depth here (readouts cover PG2016 for now)' : h < 0 ? `${(-h).toFixed(1)} m deep` : `${h.toFixed(1)} m above water`;
-const fmtLL = (lng, lat) => `${Math.abs(lat).toFixed(4)}° S, ${lng.toFixed(4)}° E`;
+const fmtH = h => h == null ? 'No survey depth here' : h < 0 ? `${(-h).toFixed(1)} m deep` : `${h.toFixed(1)} m above water`;
+const fmtLL = (lng, lat) => `${Math.abs(lat).toFixed(5)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lng).toFixed(5)}° ${lng < 0 ? 'W' : 'E'}`;
 function hav(a, b){ const R=6371008.8, r=Math.PI/180, dLat=(b[1]-a[1])*r, dLng=(b[0]-a[0])*r; const s=Math.sin(dLat/2)**2+Math.cos(a[1]*r)*Math.cos(b[1]*r)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(s)); }
 const fmtLen = m => m >= 1000 ? (m/1000).toFixed(2) + ' km' : Math.round(m) + ' m';
 
 /* ---------- map ---------- */
 mapboxgl.accessToken = store.get('mbToken') || DEFAULT_TOKEN;
 $('token').value = mapboxgl.accessToken;
-const map = new mapboxgl.Map({container:'map', style:styleUrl(), bounds:[[114.3818,-28.5561],[114.5684,-28.3257]],
+const map = new mapboxgl.Map({container:'map', style:styleUrl(), bounds:S.area ? AREAS[S.area].bounds : REGIONS[0].bounds,
   fitBoundsOptions:{padding:40}, attributionControl:true, projection:'mercator', maxPitch:80});
 map.addControl(new mapboxgl.ScaleControl({unit:'metric'}), 'bottom-left');
 
@@ -480,8 +606,8 @@ function setBase(){
   map.setStyle(styleUrl(), {diff:false});
 }
 
-// Base map palettes. Shallow water (0-200 m in the Mapbox bathymetry) takes the style's own
-// coastline-accurate water layer; the deeper bands sit on top of it so they never spill onto land.
+// Shallow water (0-200 m in the Mapbox bathymetry) takes the style's coastline-accurate water layer;
+// deeper bands sit on top of it so they never spill onto land.
 function palette(){
   const d = isDark();
   if (S.base === 'nautical') return d
@@ -517,7 +643,7 @@ function applyBaseToggles(){
     map.setLayoutProperty(l.id, 'visibility', on ? 'visible' : 'none');
   });
 }
-function firstSymbol(){ const L = map.getStyle().layers; const s = L.find(l => l.type === 'symbol' && !isOwn(l)); return s && s.id; }
+function firstSymbol(){ const s = map.getStyle().layers.find(l => l.type === 'symbol' && !isOwn(l)); return s && s.id; }
 
 function addOcean(){
   if (offline || map.getSource('ocean')) return;
@@ -544,40 +670,28 @@ function addParks(){
   map.addLayer({id:'parks-fill', type:'fill', source:'parks', 'source-layer':MARINE_PARKS.layer, layout:{visibility:vis}, paint:{'fill-color':'#1fa37a', 'fill-opacity':.12}}, firstSymbol());
   map.addLayer({id:'parks-line', type:'line', source:'parks', 'source-layer':MARINE_PARKS.layer, layout:{visibility:vis}, paint:{'line-color':'#1fa37a', 'line-width':1.6, 'line-dasharray':[3,2]}}, firstSymbol());
 }
-
+const QMATCH = ['match', starExpr, 5,QCOL[5], 4,QCOL[4], 3,QCOL[3], 2,QCOL[2], QCOL[1]];
 function addOverlays(){
-  if (!s32 || !styleReady || map.getSource('bathy')) return;
-  const [w,s,e,n] = meta.bounds, sym = firstSymbol();
-  map.addSource('bathy', {type:'canvas', canvas:cv, animate:false, coordinates:[[w,n],[e,n],[e,s],[w,s]]});
-  map.addLayer({id:'bathy', type:'raster', source:'bathy', paint:{'raster-opacity':S.opacity, 'raster-resampling':'linear', 'raster-fade-duration':0}}, sym);
-  map.addSource('dem3d', {type:'raster-dem', tiles:[DATA + 'dem/{z}/{x}/{y}.png'], tileSize:256, minzoom:meta.dem_zoom[0], maxzoom:meta.dem_zoom[1], encoding:'mapbox', bounds:meta.bounds});
-  map.addSource('shade', {type:'canvas', canvas:scv, animate:false, coordinates:[[w,n],[e,n],[e,s],[w,s]]});
-  map.addLayer({id:'pg-shade', type:'raster', source:'shade', paint:{'raster-resampling':'linear', 'raster-fade-duration':0}}, sym);
-  // online: full gdal_contour lines at the native 5 m grid, hosted as a Mapbox vector tileset;
-  // offline fallback: the lighter smoothed set shipped beside the page
+  const sym = firstSymbol();
   const SL = offline ? {} : {'source-layer':'contours'};
   if (!offline) HOSTED.forEach(r => {
-    // explicit .png tiles keep transparency (and skip stale cached webp tiles)
     map.addSource(r.id, {type:'raster', tileSize:256, maxzoom:r.maxzoom, bounds:r.bounds,
       tiles:[`https://api.mapbox.com/v4/calvoss.${r.id}/{z}/{x}/{y}.png?access_token=${mapboxgl.accessToken}`]});
-    map.addLayer({id:r.id, type:'raster', source:r.id, paint:{'raster-opacity':S.opacity, 'raster-resampling':'linear'}}, 'bathy');
+    map.addLayer({id:r.id, type:'raster', source:r.id, layout:{visibility:'none'}, paint:{'raster-opacity':S.opacity, 'raster-resampling':'linear'}}, sym);
   });
   map.addSource('contours', offline ? {type:'geojson', data:DATA + 'contours.geojson'} : {type:'vector', url:'mapbox://' + STATE_VECTORS.join(',')});
   if (!offline) {
-    map.addLayer({id:'outlines-fill', type:'fill', source:'contours', 'source-layer':'coverage', paint:{'fill-color':['match', starExpr, 5,QCOL[5], 4,QCOL[4], 3,QCOL[3], 2,QCOL[2], QCOL[1]], 'fill-opacity':['interpolate',['linear'],['zoom'],5,.25,10,.04]}}, sym);
-    map.addLayer({id:'outlines', type:'line', source:'contours', 'source-layer':'coverage', paint:{'line-color':['match', starExpr, 5,QCOL[5], 4,QCOL[4], 3,QCOL[3], 2,QCOL[2], QCOL[1]], 'line-width':['interpolate',['linear'],['zoom'],5,1.2,12,2], 'line-dasharray':[2,1.5]}}, sym);
+    map.addLayer({id:'outlines-fill', type:'fill', source:'contours', 'source-layer':'coverage', paint:{'fill-color':QMATCH, 'fill-opacity':['interpolate',['linear'],['zoom'],5,.25,10,.04]}}, sym);
+    map.addLayer({id:'outlines', type:'line', source:'contours', 'source-layer':'coverage', paint:{'line-color':QMATCH, 'line-width':['interpolate',['linear'],['zoom'],5,1.2,12,2], 'line-dasharray':[2,1.5]}}, sym);
   }
-  map.addLayer({id:'contours', type:'line', source:'contours', ...SL, paint:{
-    'line-color':'rgba(240,252,255,0.75)', 'line-width':['interpolate',['linear'],['zoom'],11,.4,15,1.2]}}, sym);
-  map.addLayer({id:'contours-major', type:'line', source:'contours', ...SL, paint:{
-    'line-color':'rgba(255,255,255,0.95)', 'line-width':['interpolate',['linear'],['zoom'],11,.9,15,2.2]}}, sym);
+  map.addLayer({id:'contours', type:'line', source:'contours', ...SL, paint:{'line-color':'rgba(240,252,255,0.75)', 'line-width':['interpolate',['linear'],['zoom'],11,.4,15,1.2]}}, sym);
+  map.addLayer({id:'contours-major', type:'line', source:'contours', ...SL, paint:{'line-color':'rgba(255,255,255,0.95)', 'line-width':['interpolate',['linear'],['zoom'],11,.9,15,2.2]}}, sym);
   if (!offline) map.addLayer({id:'contour-labels', type:'symbol', source:'contours', ...SL, minzoom:12, layout:{
     'symbol-placement':'line', 'text-field':['concat',['to-string',['get','d']],' m'], 'text-size':12,
     'text-font':['DIN Pro Medium','Arial Unicode MS Regular'], 'symbol-spacing':260, 'text-max-angle':30},
     paint:{'text-color':'#ffffff', 'text-halo-color':'#0b2433', 'text-halo-width':1.4}});
   map.addSource('prof', {type:'geojson', data:profGeo()});
-  map.addLayer({id:'prof-line', type:'line', source:'prof', filter:['==',['geometry-type'],'LineString'],
-    paint:{'line-color':'#d6127e', 'line-width':3, 'line-dasharray':[2,1]}});
+  map.addLayer({id:'prof-line', type:'line', source:'prof', filter:['==',['geometry-type'],'LineString'], paint:{'line-color':'#d6127e', 'line-width':3, 'line-dasharray':[2,1]}});
   map.addLayer({id:'prof-pts', type:'circle', source:'prof', filter:['==',['geometry-type'],'Point'],
     paint:{'circle-radius':['case',['==',['get','k'],'scrub'],7,5], 'circle-color':['case',['==',['get','k'],'scrub'],'#ffffff','#d6127e'],
       'circle-stroke-color':['case',['==',['get','k'],'scrub'],'#d6127e','#ffffff'], 'circle-stroke-width':2}});
@@ -587,27 +701,35 @@ function addOverlays(){
   map.addLayer({id:'meas-pts', type:'circle', source:'measure', filter:['==',['geometry-type'],'Point'], paint:{'circle-radius':4.5, 'circle-color':'#1667c4', 'circle-stroke-color':'#ffffff', 'circle-stroke-width':2}});
   if (!offline) map.addLayer({id:'meas-lbl', type:'symbol', source:'measure', filter:['has','label'], layout:{'text-field':['get','label'], 'text-size':12,
     'text-font':['DIN Pro Medium','Arial Unicode MS Regular'], 'text-offset':[0,-1.2], 'text-allow-overlap':true}, paint:{'text-color':'#0b2433', 'text-halo-color':'#ffffff', 'text-halo-width':1.6}});
+  addPG(); applySurveys(); paint();
+}
+// PG2016 is shipped beside the page and coloured in the browser; it loads the first time its area is picked.
+function addPG(){
+  if (!s32 || !styleReady || map.getSource('bathy')) return;
+  const [w,s,e,n] = meta.bounds, anchor = map.getLayer('outlines-fill') ? 'outlines-fill' : 'contours';
+  map.addSource('bathy', {type:'canvas', canvas:cv, animate:false, coordinates:[[w,n],[e,n],[e,s],[w,s]]});
+  map.addLayer({id:'bathy', type:'raster', source:'bathy', paint:{'raster-opacity':S.opacity, 'raster-resampling':'linear', 'raster-fade-duration':0}}, anchor);
+  map.addSource('dem3d', {type:'raster-dem', tiles:[DATA + 'dem/{z}/{x}/{y}.png'], tileSize:256, minzoom:meta.dem_zoom[0], maxzoom:meta.dem_zoom[1], encoding:'mapbox', bounds:meta.bounds});
+  map.addSource('shade', {type:'canvas', canvas:scv, animate:false, coordinates:[[w,n],[e,n],[e,s],[w,s]]});
+  map.addLayer({id:'pg-shade', type:'raster', source:'shade', paint:{'raster-resampling':'linear', 'raster-fade-duration':0}}, anchor);
   applySurveys(); applyTerrain(); paint(); paintShade();
 }
 map.on('style.load', () => { clearTimeout(styleTimer); styleReady = true; restyleBase(); addOcean(); addParks(); applyBaseToggles(); addOverlays(); });
 
 const vis = (layer, on) => map.getLayer(layer) && map.setLayoutProperty(layer, 'visibility', on ? 'visible' : 'none');
-const surveyOf = id => SURVEYS.find(s => id.startsWith(s.id));
-const surveyOn = s => !s || !!S.stars[starsOf(s.res)];
 function applySurveys(){
-  const pg = SURVEYS[0];
-  vis('bathy', S.bathy && surveyOn(pg));
-  vis('pg-shade', S.hs && surveyOn(pg));
-  HOSTED.forEach(r => vis(r.id, S.bathy && surveyOn(surveyOf(r.id))));
+  vis('bathy', S.bathy && shows('pg2016'));
+  vis('pg-shade', S.hs && shows('pg2016'));
+  HOSTED.forEach(r => { const id = Object.keys(SURVEYS).find(k => r.id.startsWith(k)); vis(r.id, S.bathy && !!id && shows(id)); });
   const allowed = Object.keys(S.stars).filter(k => S.stars[k]).map(Number);
   if (map.getLayer('outlines')) ['outlines','outlines-fill'].forEach(id => { map.setFilter(id, ['in', starExpr, ['literal', allowed]]); vis(id, S.outlines); });
-  applyContours(); renderAreas(); renderSurveyList();
+  applyContours(); renderQualBtn();
 }
 function applyContours(){
   if (!map.getLayer('contours')) return;
   const I = S.interval, major = I === 1 ? 5 : 10;
-  const hidden = SURVEYS.filter(s => !surveyOn(s)).map(s => s.title);
-  const q = offline ? (surveyOn(SURVEYS[0]) ? true : false) : ['!', ['in', ['get','survey'], ['literal', hidden]]];
+  const titles = Object.keys(SURVEYS).filter(shows).map(k => SURVEYS[k].title);
+  const q = offline ? shows('pg2016') : ['in', ['get','survey'], ['literal', titles]];
   const v = S.contours ? 'visible' : 'none';
   map.setFilter('contours', ['all', q, ['==', ['%', ['get','d'], I], 0], ['!=', ['%', ['get','d'], major], 0]]);
   map.setFilter('contours-major', ['all', q, ['==', ['%', ['get','d'], major], 0]]);
@@ -619,75 +741,74 @@ function applyContours(){
   }
 }
 function applyTerrain(){
+  $('t3d').setAttribute('aria-pressed', S.t3d);
   if (!map.getSource('dem3d')) return;
   if (S.t3d) { map.setTerrain({source:'dem3d', exaggeration:S.exag}); if (map.getPitch() < 30) map.easeTo({pitch:60, duration:900}); }
   else { map.setTerrain(null); if (map.getPitch() > 0) map.easeTo({pitch:0, duration:600}); }
 }
 
-/* ---------- data load ---------- */
-async function load(){
-  meta = await (await fetch(DATA + 'meta.json')).json();
-  const blob = await (await fetch(DATA + 'depth.png')).blob();
-  const bmp = await createImageBitmap(blob, {premultiplyAlpha:'none', colorSpaceConversion:'none'});
-  W = bmp.width; H = bmp.height;
-  const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d', {willReadFrequently:true}); g.drawImage(bmp, 0, 0);
-  const raw = g.getImageData(0, 0, W, H).data;
-  Z = new Float32Array(W*H); const idx = [];
-  for (let i=0, p=0; i<W*H; i++, p+=4){
-    const v = (raw[p]<<16) + (raw[p+1]<<8) + raw[p+2];
-    if (v === 0) Z[i] = NaN; else { Z[i] = v*.1 - 10000; idx.push(i); }
-  }
-  valid = Int32Array.from(idx);
-  cv = document.createElement('canvas'); cv.width = W; cv.height = H;
-  ctx = cv.getContext('2d'); imgData = ctx.createImageData(W, H); px32 = new Uint32Array(imgData.data.buffer);
-  scv = document.createElement('canvas'); scv.width = W; scv.height = H;
-  sctx = scv.getContext('2d'); simg = sctx.createImageData(W, H); s32 = new Uint32Array(simg.data.buffer);
-  computeShade();
-  const [w,s,e,n] = meta.bounds;
-  M0 = mapboxgl.MercatorCoordinate.fromLngLat({lng:w, lat:n}); M1 = mapboxgl.MercatorCoordinate.fromLngLat({lng:e, lat:s});
-  let deep = 0; for (const i of valid) if (Z[i] < deep) deep = Z[i];
-  const dd = [['Source file', meta.source], ['Coverage', 'About 6 km wide, 25 km of coast'], ['Contours', offline ? 'Smoothed preview (offline)' : '1 m, GDAL contour of the native 5 m grid'], ['Native grid', `${meta.grid[0]} × ${meta.grid[1]} cells at ${meta.native_res_m} m`],
-    ['Web grid', `${W} × ${H} at ${meta.px_m} m, Web Mercator`], ['Deepest', `${(-deep).toFixed(1)} m`], ['Highest land', `${meta.max.toFixed(1)} m`],
-    ['Horizontal', meta.crs], ['Vertical', meta.vdatum]];
-  $('meta').innerHTML = dd.map(([k,v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
-  drawLegend(sorted());
-  addOverlays();
+/* ---------- PG2016 data ---------- */
+function loadPG(){
+  if (pgLoading) return pgLoading;
+  return pgLoading = (async () => {
+    meta = await (await fetch(DATA + 'meta.json')).json();
+    const blob = await (await fetch(DATA + 'depth.png')).blob();
+    const bmp = await createImageBitmap(blob, {premultiplyAlpha:'none', colorSpaceConversion:'none'});
+    const w = bmp.width, h = bmp.height;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d', {willReadFrequently:true}); g.drawImage(bmp, 0, 0);
+    const raw = g.getImageData(0, 0, w, h).data;
+    const z = new Float32Array(w*h), idx = [];
+    for (let i=0, p=0; i<w*h; i++, p+=4){ const v = (raw[p]<<16) + (raw[p+1]<<8) + raw[p+2]; if (v === 0) z[i] = NaN; else { z[i] = v*.1 - 10000; idx.push(i); } }
+    W = w; H = h; valid = Int32Array.from(idx);
+    cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    ctx = cv.getContext('2d'); imgData = ctx.createImageData(W, H); px32 = new Uint32Array(imgData.data.buffer);
+    scv = document.createElement('canvas'); scv.width = W; scv.height = H;
+    sctx = scv.getContext('2d'); simg = sctx.createImageData(W, H); s32 = new Uint32Array(simg.data.buffer);
+    const [bw,bs,be,bn] = meta.bounds;
+    M0 = mapboxgl.MercatorCoordinate.fromLngLat({lng:bw, lat:bn}); M1 = mapboxgl.MercatorCoordinate.fromLngLat({lng:be, lat:bs});
+    Z = z; computeShade();
+    let deep = 0; for (const i of valid) if (Z[i] < deep) deep = Z[i];
+    meta.deepest = -deep;
+    addPG(); renderArea();
+  })().catch(err => { pgLoading = null; $('note').textContent = 'Could not load the survey data: ' + err.message; $('note').hidden = false; });
 }
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-load().catch(err => { $('note').textContent = 'Could not load the survey data: ' + err.message; $('note').hidden = false; });
 
-/* ---------- readout & clicks ---------- */
+/* ---------- clicks & coordinates ---------- */
+let popup, lastLL = null;
+function showCoords(ll){
+  if (!S.coords) return;
+  lastLL = ll || lastLL || map.getCenter();
+  const h = depthAt(lastLL.lng, lastLL.lat);
+  const why = !S.area ? 'Choose an area for depths' : !shows('pg2016') ? 'Depth readout not available for this survey yet' : 'No survey depth here';
+  $('coords').innerHTML = `<b>${h == null ? why : fmtH(h)}</b><span>${fmtLL(lastLL.lng, lastLL.lat)}</span>`;
+}
 const fine = matchMedia('(pointer:fine)').matches;
-map.on('mousemove', e => {
-  if (!fine) return;
-  const h = depthAt(e.lngLat.lng, e.lngLat.lat);
-  const r = $('readout');
-  if (h == null) { r.hidden = true; return; }
-  r.innerHTML = `<b>${fmtH(h)}</b> · ${fmtLL(e.lngLat.lng, e.lngLat.lat)}`; r.hidden = false;
-});
-let popup;
+map.on('mousemove', e => { if (fine) showCoords(e.lngLat); });
+map.on('moveend', () => { if (!fine) showCoords(map.getCenter()); });
 map.on('click', e => {
   const pt = [e.lngLat.lng, e.lngLat.lat];
   if (mode === 'profile') { profPts.push(pt); updateDraw(); return; }
   if (mode === 'measure') { measPts.push(pt); updateMeasure(); return; }
+  showCoords(e.lngLat);
   const h = depthAt(e.lngLat.lng, e.lngLat.lat);
   if (popup) popup.remove();
-  const el = document.createElement('div');
   let html = `<b style="font-size:16px">${fmtH(h)}</b><br><span style="color:var(--muted)">${fmtLL(e.lngLat.lng, e.lngLat.lat)}</span>`;
   const cov = map.getLayer('outlines-fill') && S.outlines ? map.queryRenderedFeatures(e.point, {layers:['outlines-fill']}) : [];
   const seen = new Set();
-  cov.forEach(f => { const p = f.properties; if (seen.has(p.title)) return; seen.add(p.title); const r = +p.resolution_m;
-    html += `<hr style="border:0;border-top:1px solid var(--line);margin:6px 0"><b>${esc(p.title)}</b><br>${starHtml(starsOf(r))} <span class="val">${esc(p.resolution_m)} m grid · ${esc(p.year || '')}</span>`; });
-  el.innerHTML = html;
+  cov.forEach(f => { const p = f.properties; if (seen.has(p.title)) return; seen.add(p.title);
+    html += `<hr style="border:0;border-top:1px solid var(--line);margin:6px 0"><b>${esc(p.title)}</b><br>${starHtml(starsOf(+p.resolution_m))} <span class="val">${esc(p.resolution_m)} m grid · ${esc(p.year || '')}</span>`; });
+  const el = document.createElement('div'); el.innerHTML = html;
   popup = new mapboxgl.Popup({closeButton:false, offset:8, maxWidth:'300px'}).setLngLat(e.lngLat).setDOMContent(el).addTo(map);
 });
 map.on('dblclick', e => { if (mode === 'profile') { e.preventDefault(); finishDraw(); } else if (mode === 'measure') { e.preventDefault(); setMode('pan'); } });
+function setCoords(on){ S.coords = on; $('coords').hidden = !on; $('tCoords').setAttribute('aria-pressed', on); save(); if (on) showCoords(map.getCenter()); }
+$('tCoords').onclick = () => setCoords(!S.coords);
 
 /* ---------- tools ---------- */
 function setMode(m){
   if (mode === m) m = 'pan';
-  if (mode === 'profile' && m !== 'profile') { profPts = prof ? profPts : []; setProf(); }
+  if (mode === 'profile' && m !== 'profile' && !prof) { profPts = []; setProf(); }
   mode = m;
   document.querySelectorAll('#tools [data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === mode));
   const tool = mode !== 'pan';
@@ -695,7 +816,7 @@ function setMode(m){
   map.getCanvas().style.cursor = tool ? 'crosshair' : '';
   $('drawbar').hidden = !tool; $('drawbar').classList.toggle('measure', mode === 'measure');
   if (popup) popup.remove();
-  if (mode === 'profile') { profPts = []; prof = null; updateDraw(); renderProfile(); }
+  if (mode === 'profile') { profPts = []; prof = null; $('profPanel').hidden = true; updateDraw(); if (innerWidth < 700) closeDrawer(); }
   if (mode === 'measure') { measPts = []; updateMeasure(); }
   if (mode === 'pan') { measPts = []; setMeas(); }
 }
@@ -703,8 +824,14 @@ document.querySelectorAll('#tools [data-mode]').forEach(b => b.onclick = () => s
 $('tIn').onclick = () => map.zoomIn();
 $('tOut').onclick = () => map.zoomOut();
 $('tNorth').onclick = () => map.easeTo({bearing:0, pitch:S.t3d ? map.getPitch() : 0});
-const zl = () => { $('zl').textContent = map.getZoom().toFixed(0); $('northIcon').style.transform = `rotate(${-map.getBearing()}deg)`; };
-map.on('move', zl); zl();
+let noteT;
+const flash = msg => { $('note').textContent = msg; $('note').hidden = false; clearTimeout(noteT); noteT = setTimeout(() => $('note').hidden = true, 5000); };
+$('t3d').onclick = () => {
+  S.t3d = !S.t3d;
+  if (S.t3d && !map.getSource('dem3d')) flash('The 3D seabed covers the Mid West (PG2016) area for now. Choose it under Select area.');
+  applyTerrain();
+};
+map.on('rotate', () => { $('northIcon').style.transform = `rotate(${-map.getBearing()}deg)`; });
 
 function measGeo(){
   const f = measPts.map(p => ({type:'Feature', properties:{}, geometry:{type:'Point', coordinates:p}}));
@@ -736,8 +863,8 @@ function updateDraw(){
 }
 function finishDraw(){
   if (profPts.length < 2) return;
-  const pts = profPts; mode = 'profile'; prof = {}; setMode('pan'); profPts = pts; setProf();
-  computeProfile(); showTab('profile'); setMenu(true);
+  computeProfile(); setMode('pan'); setProf();
+  $('profPanel').hidden = false; renderProfile();
 }
 function computeProfile(){
   const seg = [0]; for (let i=1;i<profPts.length;i++) seg.push(seg[i-1] + hav(profPts[i-1], profPts[i]));
@@ -748,13 +875,15 @@ function computeProfile(){
     const p = [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t];
     out.push({d, p, h:depthAt(p[0], p[1])});
   }
-  prof = {L, pts:out}; renderProfile();
+  prof = {L, pts:out};
 }
 function renderProfile(){
   const o = $('profOut');
-  if (!prof || !prof.pts) { o.innerHTML = `<p class="empty">${mode === 'profile' ? 'Tap points on the map, then press Finish (or double-click).' : 'Draw a line across a reef, drop-off or channel to see the seabed shape along it. Use the profile tool on the right, or the button above.'}</p>`; return; }
+  $('copyCsv').hidden = true;
+  if (!prof) { o.innerHTML = ''; return; }
   const hs = prof.pts.filter(q => q.h != null).map(q => q.h);
-  if (!hs.length) { o.innerHTML = '<p class="empty">That line misses the surveyed area. Try one across the coloured strip.</p>'; return; }
+  if (!hs.length) { o.innerHTML = `<p class="empty">${S.area ? 'That line misses the surveyed area. Try one across the coloured bathymetry.' : 'Choose an area first, then draw across its bathymetry.'} Profiles read the Mid West (PG2016) survey for now.</p>`; return; }
+  $('copyCsv').hidden = false;
   const sub = hs.filter(h => h < 0), land = hs.filter(h => h >= 0);
   const deep = sub.length ? (-Math.min(...sub)).toFixed(1) + ' m' : 'none', shallow = sub.length ? (-Math.max(...sub)).toFixed(1) + ' m' : 'none';
   const third = land.length ? `<div><b>${Math.max(...land).toFixed(1)} m</b><span>Highest land</span></div>` : `<div><b>${shallow}</b><span>Shallowest</span></div>`;
@@ -762,15 +891,18 @@ function renderProfile(){
   const cover = hs.length/prof.pts.length*100;
   o.innerHTML = `<div class="stats"><div><b>${fmtLen(prof.L)}</b><span>Line length</span></div><div><b>${deep}</b><span>Deepest</span></div>${third}<div><b>${slope.toFixed(0)}°</b><span>Steepest slope</span></div></div>
     <div id="chart" aria-label="Depth profile chart"></div>
-    <div class="row"><span class="val" style="flex:1;white-space:normal">${cover<99?`${cover.toFixed(0)}% of the line has survey data`:'Drag across the chart to trace it on the map'}</span><button class="btn" id="copyCsv">Copy CSV</button></div>`;
-  $('copyCsv').onclick = async ev => {
-    const csv = 'distance_m,lon,lat,elevation_m\n' + prof.pts.map(q => `${q.d.toFixed(1)},${q.p[0].toFixed(6)},${q.p[1].toFixed(6)},${q.h==null?'':q.h.toFixed(2)}`).join('\n');
-    try { await navigator.clipboard.writeText(csv); ev.target.textContent = 'Copied'; } catch(e) { ev.target.textContent = 'Copy blocked'; }
-  };
-  drawChart();
+    <span class="val" style="white-space:normal">${cover<99?`${cover.toFixed(0)}% of the line has survey data`:'Drag across the chart to trace it on the map'}</span>`;
+  requestAnimationFrame(drawChart);
 }
+$('copyCsv').onclick = async ev => {
+  if (!prof) return;
+  const csv = 'distance_m,lon,lat,elevation_m\n' + prof.pts.map(q => `${q.d.toFixed(1)},${q.p[0].toFixed(6)},${q.p[1].toFixed(6)},${q.h==null?'':q.h.toFixed(2)}`).join('\n');
+  try { await navigator.clipboard.writeText(csv); ev.target.textContent = 'Copied'; } catch(e) { ev.target.textContent = 'Copy blocked'; }
+  setTimeout(() => ev.target.textContent = 'Copy CSV', 2000);
+};
+$('profClose').onclick = () => { $('profPanel').hidden = true; profPts = []; prof = null; setProf(); };
 function drawChart(){
-  const box = $('chart'); if (!box || !prof || !prof.pts) return;
+  const box = $('chart'); if (!box || !prof) return;
   const Wc = box.clientWidth, Hc = box.clientHeight, ml = 40, mr = 10, mt = 10, mb = 24;
   if (!Wc) return;
   const hs = prof.pts.filter(q => q.h != null).map(q => q.h);
@@ -804,7 +936,7 @@ function drawChart(){
     const r = svg.getBoundingClientRect(), x = ev.clientX - r.left;
     const d = Math.max(0, Math.min(prof.L, (x-ml)/(Wc-ml-mr)*prof.L));
     const q = prof.pts[Math.round(d/prof.L*(prof.pts.length-1))];
-    const g = svg.querySelector('#scrub'); g.setAttribute('visibility','visible');
+    svg.querySelector('#scrub').setAttribute('visibility','visible');
     svg.querySelector('#sl').setAttribute('x1', X(q.d)); svg.querySelector('#sl').setAttribute('x2', X(q.d));
     const c = svg.querySelector('#sc'); c.setAttribute('cx', X(q.d)); c.setAttribute('cy', q.h==null ? -20 : Y(q.h));
     const t = svg.querySelector('#st'); t.textContent = `${fmtLen(q.d)} · ${fmtH(q.h)}`;
@@ -815,45 +947,97 @@ function drawChart(){
   svg.addEventListener('pointerleave', () => { svg.querySelector('#scrub').setAttribute('visibility','hidden'); setProf(); });
 }
 function niceStep(x){ const p = 10**Math.floor(Math.log10(x)), f = x/p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10)*p; }
-new ResizeObserver(() => drawChart()).observe($('menu'));
+new ResizeObserver(() => drawChart()).observe($('profPanel'));
 
-$('drawBtn').onclick = () => { if (innerWidth < 700) setMenu(false); if (mode !== 'profile') setMode('profile'); };
 $('undoPt').onclick = () => { if (mode === 'measure') { measPts.pop(); updateMeasure(); } else { profPts.pop(); updateDraw(); } };
 $('finishPt').onclick = () => mode === 'measure' ? setMode('pan') : finishDraw();
-$('cancelPt').onclick = () => { if (mode === 'measure') { measPts = []; updateMeasure(); } else { profPts = []; prof = null; setMode('pan'); setProf(); renderProfile(); } };
-$('clearProf').onclick = () => { if (mode === 'profile') setMode('pan'); profPts = []; prof = null; setProf(); renderProfile(); };
+$('cancelPt').onclick = () => { if (mode === 'measure') { measPts = []; updateMeasure(); } else { profPts = []; prof = null; setMode('pan'); setProf(); } };
 
-/* ---------- left menu ---------- */
-function showTab(t){
-  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
-  document.querySelectorAll('.body').forEach(p => p.hidden = p.dataset.pane !== t);
-  if (t === 'profile') requestAnimationFrame(drawChart);
+/* ---------- drawer ---------- */
+const TITLES = {menu:'Menu', area:'Select area', layers:'Map layers', base:'Base map', config:'Map configuration', admin:'Survey uploads', about:'About and safety'};
+let view = null;
+function openDrawer(v){
+  if (view === v && !$('drawer').hidden) { closeDrawer(); return; }
+  view = v; $('drawer').hidden = false; $('dTitle').textContent = TITLES[v]; $('dBack').hidden = v === 'menu';
+  document.querySelectorAll('.view').forEach(s => s.hidden = s.dataset.view !== v);
+  document.querySelectorAll('button[data-view]').forEach(b => b.setAttribute('aria-expanded', b.dataset.view === v));
+  closeQual(); closeUser();
+  if (v === 'area') renderArea();
+  if (v === 'config') requestAnimationFrame(() => drawLegend(sorted()));
+  pad();
 }
-document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
-function setMenu(open){ S.menuOpen = open; $('menu').classList.toggle('closed', !open); $('menuOpen').hidden = open; save(); pad(); }
-$('menuClose').onclick = () => setMenu(false);
-$('menuOpen').onclick = () => setMenu(true);
+function closeDrawer(){ view = null; $('drawer').hidden = true; document.querySelectorAll('button[data-view]').forEach(b => b.setAttribute('aria-expanded', false)); pad(); }
+document.querySelectorAll('button[data-view]').forEach(b => b.onclick = () => openDrawer(b.dataset.view));
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => openDrawer(b.dataset.go));
+$('dBack').onclick = () => openDrawer('menu');
+$('dClose').onclick = closeDrawer;
+$('crumb').onclick = () => openDrawer('area');
+addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (mode !== 'pan') setMode('pan'); else if (!$('qualPop').hidden) closeQual(); else if (!$('userPanel').hidden) closeUser(); else closeDrawer(); });
 
-/* ---------- right panel ---------- */
-function setLayers(open){ S.layersOpen = open; $('layers').hidden = !open; $('edge').textContent = open ? '»' : '«';
-  $('edge').setAttribute('aria-label', open ? 'Hide layers panel' : 'Show layers panel'); $('tLayers').setAttribute('aria-pressed', open); save(); pad(); }
-$('edge').onclick = () => setLayers(!S.layersOpen);
-$('tLayers').onclick = () => setLayers(!S.layersOpen);
+/* ---------- area selection ---------- */
+let areaPath = S.area ? [AREAS[S.area].country.id, AREAS[S.area].state.id] : ['au'];
+let openMeta = null;
+function surveyMeta(id){
+  const s = SURVEYS[id], rows = [['Survey', esc(s.name)], ['Quality', starHtml(starsOf(s.res)) + ` <span class="val">${s.res} m grid</span>`], ['Year', esc(s.year)], ['Depths', esc(s.depths)], ['Sensor', esc(s.sensor)]];
+  if (s.datum) rows.push(['Vertical datum', esc(s.datum)]);
+  rows.push(['Source', esc(s.source)]);
+  if (s.licence) rows.push(['Licence', esc(s.licence)]);
+  if (s.url) rows.push(['Metadata', `<a href="${esc(s.url)}" target="_blank" rel="noopener">Catalogue record</a>`]);
+  if (id === 'pg2016' && meta && meta.deepest != null) rows.push(['Native grid', `${meta.grid[0]} × ${meta.grid[1]} at ${meta.native_res_m} m`], ['Web grid', `${W} × ${H} at ${meta.px_m} m`], ['Deepest', `${meta.deepest.toFixed(1)} m`], ['Highest land', `${meta.max.toFixed(1)} m`], ['Horizontal', esc(meta.crs)], ['Source file', esc(meta.source)]);
+  return `<dl>${rows.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+}
+function renderArea(){
+  const c = REGIONS.find(r => r.id === areaPath[0]), st = c && c.states.find(s => s.id === areaPath[1]);
+  let crumbs = `<button data-path="">All countries</button>`;
+  if (c) crumbs += `<span>›</span><button data-path="${c.id}">${esc(c.name)}</button>`;
+  if (st) crumbs += `<span>›</span><button data-path="${c.id},${st.id}">${esc(st.name)}</button>`;
+  $('areaCrumbs').innerHTML = crumbs;
+  let html = '';
+  if (!c) html = REGIONS.map(r => { const n = r.states.reduce((a, s) => a + s.areas.length, 0);
+    return `<button class="pick" data-c="${r.id}"><span><b>${esc(r.name)}</b><small>${r.states.length} states · ${n} area${n === 1 ? '' : 's'}</small></span><svg class="i"><use href="#i-next"/></svg></button>`; }).join('');
+  else if (!st) html = c.states.map(s => { const n = s.areas.filter(areaOn).length;
+    return `<button class="pick" data-s="${s.id}"><span><b>${esc(s.name)}</b><small>${s.areas.length ? `${n} area${n === 1 ? '' : 's'}${n < s.areas.length ? ` (${s.areas.length - n} hidden by quality filter)` : ''}` : 'No surveys yet'}</small></span><svg class="i"><use href="#i-next"/></svg></button>`; }).join('');
+  else html = st.areas.length ? st.areas.map(a => {
+    const on = areaOn(a), best = Math.max(...a.surveys.map(id => starsOf(SURVEYS[id].res)));
+    return `<div class="area ${S.area === a.id ? 'sel' : ''} ${on ? '' : 'off'}"><h4>${esc(a.name)}</h4>
+      <div class="sub">${starHtml(best)}<span>${a.surveys.map(id => `${esc(SURVEYS[id].name)}, ${SURVEYS[id].res} m`).join(' · ')}</span></div>
+      <div class="acts">${S.area === a.id ? `<button class="btn sm" data-clear>Clear area</button>` : `<button class="btn sm blue" data-a="${a.id}" ${on ? '' : 'disabled title="Hidden by the quality filter"'}>Show bathymetry</button>`}
+      <button class="btn sm" data-meta="${a.id}" aria-expanded="${openMeta === a.id}">${openMeta === a.id ? 'Hide details' : 'Survey details'}</button></div>
+      ${openMeta === a.id ? a.surveys.map(surveyMeta).join('<hr style="border:0;border-top:1px solid var(--line)">') : ''}</div>`; }).join('')
+    : '<p class="empty">No surveys in this state yet. New areas appear here as surveys are published.</p>';
+  $('areaList').innerHTML = html;
+  const a = S.area && AREAS[S.area];
+  $('crumb').textContent = a ? `${a.state.id.toUpperCase()} › ${a.name}` : 'Choose an area';
+  $('crumb').classList.toggle('set', !!a);
+}
+const fly = b => map.fitBounds(b, {padding:60, duration:1400});
+$('areaCrumbs').onclick = e => { const b = e.target.closest('[data-path]'); if (!b) return; areaPath = b.dataset.path ? b.dataset.path.split(',') : [];
+  const c = REGIONS.find(r => r.id === areaPath[0]), st = c && c.states.find(s => s.id === areaPath[1]); if (st || c) fly((st || c).bounds); renderArea(); };
+$('areaList').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.c) { areaPath = [b.dataset.c]; fly(REGIONS.find(r => r.id === b.dataset.c).bounds); }
+  else if (b.dataset.s) { areaPath = [areaPath[0], b.dataset.s]; fly(REGIONS.find(r => r.id === areaPath[0]).states.find(s => s.id === b.dataset.s).bounds); }
+  else if (b.dataset.a) return selectArea(b.dataset.a);
+  else if (b.hasAttribute('data-clear')) return selectArea(null);
+  else if (b.dataset.meta) { openMeta = openMeta === b.dataset.meta ? null : b.dataset.meta; if (openMeta && AREAS[openMeta].surveys.includes('pg2016')) loadPG(); }
+  renderArea();
+};
+function selectArea(id){
+  S.area = id; save();
+  if (id) { const a = AREAS[id]; if (innerWidth < 700) closeDrawer(); fly(a.bounds); if (a.surveys.includes('pg2016')) loadPG(); }
+  else { S.t3d = false; applyTerrain(); }
+  applySurveys(); paint(); renderArea(); showCoords();
+}
 
+/* ---------- layers, base map, quality ---------- */
 const bind = (id, key, fn, fmt) => { const el = $(id);
   if (el.type === 'checkbox') el.checked = !!S[key]; else el.value = S[key];
   const set = () => { if (fmt) $(id+'V').textContent = fmt(S[key]); };
   el.addEventListener('input', () => { S[key] = el.type === 'checkbox' ? el.checked : +el.value; set(); fn(); save(); }); set(); };
 bind('bathyOn', 'bathy', () => { applySurveys(); paint(); });
-bind('opacity', 'opacity', () => { map.getLayer('bathy') && map.setPaintProperty('bathy', 'raster-opacity', S.opacity); HOSTED.forEach(r => map.getLayer(r.id) && map.setPaintProperty(r.id, 'raster-opacity', S.opacity)); }, v => Math.round(v*100) + '%');
-bind('landOn', 'land', paint);
 bind('hsOn', 'hs', applySurveys);
-let shadeQ; bind('hs', 'hsK', () => { cancelAnimationFrame(shadeQ); shadeQ = requestAnimationFrame(paintShade); }, v => Math.round(v*100) + '%');
 bind('ctOn', 'contours', applyContours);
 bind('outlineOn', 'outlines', applySurveys);
-bind('lblOn', 'labels', applyContours);
-bind('t3d', 't3d', applyTerrain);
-bind('exag', 'exag', () => S.t3d && map.setTerrain({source:'dem3d', exaggeration:S.exag}), v => v + '×');
 bind('oceanOn', 'ocean', () => ['ocean','ocean-lines','ocean-labels'].forEach(id => vis(id, S.ocean)));
 bind('labelsOn', 'refLabels', applyBaseToggles);
 bind('roadsOn', 'roads', applyBaseToggles);
@@ -862,20 +1046,36 @@ bind('parksOn', 'parks', () => ['parks-fill','parks-line'].forEach(id => vis(id,
 if (MARINE_PARKS) { $('parksOn').disabled = false; $('parksNote').textContent = 'Marine protected areas'; } else $('parksOn').checked = false;
 
 function renderBasemaps(){
-  $('basemaps').innerHTML = Object.entries(BASEMAPS).map(([k,b]) => `<button data-k="${k}" aria-pressed="${S.base===k}"><i style="background:${b.sw}"></i>${b.name}</button>`).join('');
+  $('basemaps').innerHTML = Object.entries(BASEMAPS).map(([k,b]) => `<button data-k="${k}" aria-pressed="${S.base===k}"><i style="background:${b.sw}"></i>${b.name}<small>${b.note}</small></button>`).join('');
 }
 $('basemaps').onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === S.base) return; S.base = b.dataset.k; renderBasemaps(); save(); setBase(); };
 renderBasemaps();
 
 function renderQuality(){
   $('quality').innerHTML = QUALITY.map(([n, label]) => {
-    const count = SURVEYS.filter(s => starsOf(s.res) === n && shown.includes(s)).length;
-    return `<div class="lrow"><i class="key" style="border-color:${QCOL[n]};background:${QCOL[n]}33"></i><label for="q${n}">${starHtml(n)}<small>${label} · ${count} survey${count === 1 ? '' : 's'}</small></label><input class="sw" type="checkbox" id="q${n}" data-n="${n}" ${S.stars[n] ? 'checked' : ''}></div>`;
+    const count = Object.values(SURVEYS).filter(s => starsOf(s.res) === n).length;
+    return `<div class="lrow" style="padding:4px 14px"><i class="key" style="border-color:${QCOL[n]};background:${QCOL[n]}33"></i><label for="q${n}">${starHtml(n)}<small>${label} · ${count} survey${count === 1 ? '' : 's'}</small></label><input class="sw" type="checkbox" id="q${n}" data-n="${n}" ${S.stars[n] ? 'checked' : ''}></div>`;
   }).join('');
+  $('qkey').innerHTML = QUALITY.map(([n, label]) => `<dt>${starHtml(n)}</dt><dd>${label}</dd>`).join('');
 }
-$('quality').addEventListener('input', e => { const n = e.target.dataset.n; if (!n) return; S.stars[n] = e.target.checked; save(); applySurveys(); });
+function renderQualBtn(){
+  const on = Object.keys(S.stars).filter(k => S.stars[k]).map(Number), min = Math.min(...on);
+  const upFrom = on.length && on.length === 6 - min;
+  $('qualTxt').innerHTML = `<span class="q">★</span>` + (on.length === 5 ? 'All' : !on.length ? 'None' : upFrom ? `${min}★ +` : `${on.length} of 5`);
+  $('qualBtn').title = 'Survey quality filter: ' + (on.length === 5 ? 'showing all' : !on.length ? 'nothing shown' : upFrom ? `${min} stars and up` : `${on.length} of 5 levels`);
+}
+$('quality').addEventListener('input', e => { const n = e.target.dataset.n; if (!n) return; S.stars[n] = e.target.checked; save(); applySurveys(); renderArea(); });
+function closeQual(){ $('qualPop').hidden = true; $('qualBtn').setAttribute('aria-expanded', false); }
+$('qualBtn').onclick = () => {
+  if (!$('qualPop').hidden) return closeQual();
+  const r = $('qualBtn').getBoundingClientRect(), dOpen = !$('drawer').hidden && innerWidth >= 700;
+  if (innerWidth < 700) Object.assign($('qualPop').style, {left:'12px', top:(r.bottom + 8) + 'px'});
+  else Object.assign($('qualPop').style, {top:r.top + 'px', left:(dOpen ? $('drawer').getBoundingClientRect().right + 8 : r.right + 8) + 'px'});
+  $('qualPop').hidden = false; $('qualBtn').setAttribute('aria-expanded', true); closeUser();
+};
+renderQuality();
 
-/* ---------- settings ---------- */
+/* ---------- configuration ---------- */
 function renderTheme(){ $('theme').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === S.theme)); }
 $('theme').onclick = e => { const b = e.target.closest('button'); if (!b) return; const was = isDark(); S.theme = b.dataset.v; renderTheme(); applyThemeAttr(); save(); themeChanged(was); };
 function themeChanged(was){ if (was === isDark()) return; if (S.base !== 'satellite' && S.base !== 'outdoors') setBase(); if (mini) mini.setStyle(miniStyle(), {diff:false}); paint(); }
@@ -883,11 +1083,15 @@ darkMQ.addEventListener('change', () => { if (S.theme === 'auto') themeChanged(!
 renderTheme();
 
 let paintQ; const repaint = () => { cancelAnimationFrame(paintQ); paintQ = requestAnimationFrame(paint); save(); };
+bind('opacity', 'opacity', () => { map.getLayer('bathy') && map.setPaintProperty('bathy', 'raster-opacity', S.opacity); HOSTED.forEach(r => map.getLayer(r.id) && map.setPaintProperty(r.id, 'raster-opacity', S.opacity)); }, v => Math.round(v*100) + '%');
+bind('landOn', 'land', paint);
+let shadeQ; bind('hs', 'hsK', () => { cancelAnimationFrame(shadeQ); shadeQ = requestAnimationFrame(paintShade); }, v => Math.round(v*100) + '%');
+bind('lblOn', 'labels', applyContours);
+bind('exag', 'exag', () => S.t3d && map.getSource('dem3d') && map.setTerrain({source:'dem3d', exaggeration:S.exag}), v => v + '×');
 bind('dmin', 'dmin', () => { if (S.dmin >= S.dmax) { S.dmax = S.dmin + 1; $('dmax').value = S.dmax; $('dmaxV').textContent = S.dmax + ' m'; } renderStops(); repaint(); }, v => v + ' m');
 bind('dmax', 'dmax', () => { if (S.dmax <= S.dmin) { S.dmin = Math.max(0, S.dmax - 1); $('dmin').value = S.dmin; $('dminV').textContent = S.dmin + ' m'; } renderStops(); repaint(); }, v => v + ' m');
 bind('banded', 'banded', repaint);
 $('band').value = S.band; $('band').onchange = e => { S.band = +e.target.value; repaint(); };
-
 $('intervals').innerHTML = [1,2,5,10].map(i => `<button class="chip" data-i="${i}" aria-pressed="${i===S.interval}">${i} m</button>`).join('');
 $('intervals').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.interval = +b.dataset.i; save();
   $('intervals').querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === b)); applyContours(); };
@@ -901,7 +1105,7 @@ $('ramps').onclick = e => { const b = e.target.closest('button'); if (!b || b.da
   S.ramp = b.dataset.k; S.stops = p.stops.map(s => s.slice()); S.banded = p.banded; $('banded').checked = p.banded; renderRamps(); renderStops(); repaint(); };
 const depthOf = t => S.dmin + t*(S.dmax - S.dmin);
 function renderStops(){
-  $('stops').innerHTML = sorted().map(([t,c]) => `<div class="stop" data-t="${t}"><input type="color" value="${c}" aria-label="Stop colour"><span class="d"><input type="number" step="0.5" min="0" value="${+depthOf(t).toFixed(1)}" aria-label="Stop depth in metres"> m</span><button class="btn" data-del aria-label="Remove stop">✕</button></div>`).join('');
+  $('stops').innerHTML = sorted().map(([t,c]) => `<div class="stop" data-t="${t}"><input type="color" value="${c}" aria-label="Stop colour"><span class="d"><input type="number" step="0.5" min="0" value="${+depthOf(t).toFixed(1)}" aria-label="Stop depth in metres"> m</span><button class="btn sm" data-del aria-label="Remove stop">✕</button></div>`).join('');
 }
 function custom(){ S.ramp = 'custom'; renderRamps(); repaint(); }
 $('stops').addEventListener('input', e => {
@@ -919,61 +1123,77 @@ $('addStop').onclick = () => { const st = sorted(); let gi = 0, gap = 0;
   st.push([t, '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('')]); S.stops = st; renderStops(); custom(); };
 $('resetRamp').onclick = () => { const k = S.ramp === 'custom' ? 'reef' : S.ramp; S.ramp = k; S.stops = PRESETS[k].stops.map(s => s.slice()); renderRamps(); renderStops(); repaint(); };
 $('resetAll').onclick = () => { store.del('seaclear.settings'); location.reload(); };
-renderRamps(); renderStops(); renderProfile();
+renderRamps(); renderStops();
 
 $('saveToken').onclick = () => { const v = $('token').value.trim(); if (!/^pk\./.test(v)) { $('token').style.borderColor = 'var(--mag)'; return; }
   store.set('mbToken', v); mapboxgl.accessToken = v; setBase(); };
 
-/* ---------- surveys ---------- */
-const shown = SURVEYS.filter(s => s.id === 'pg2016' || HOSTED.some(r => r.id.startsWith(s.id)));
-function renderAreas(){
-  const cur = $('area').value;
-  $('area').innerHTML = '<option value="">Choose a survey…</option>' + shown.map(s => `<option value="${s.id}" ${surveyOn(s) ? '' : 'disabled'}>${esc(s.name.replace(/ \(.*\)/, ''))} · ${s.res} m · ${starsOf(s.res)}★</option>`).join('');
-  $('area').value = cur && surveyOn(SURVEYS.find(s => s.id === cur)) ? cur : '';
+/* ---------- account (UI only until identity management is set up) ---------- */
+const P = (() => { try { return JSON.parse(store.get('seaclear.profile') || '{}'); } catch(e) { return {}; } })();
+const saveP = () => store.set('seaclear.profile', JSON.stringify(P));
+function renderUser(){
+  const ini = (P.name || '').trim().split(/\s+/).filter(Boolean).map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const face = P.img ? `<img src="${P.img}" alt="">` : ini ? esc(ini) : '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+  $('userBtn').innerHTML = face; $('avatar').innerHTML = face;
 }
-$('area').onchange = e => { const a = SURVEYS.find(x => x.id === e.target.value); if (a) map.fitBounds(a.bounds, {padding:40, duration:1600}); };
-function renderSurveyList(){
-  $('slist').innerHTML = shown.map(s => `<li class="${surveyOn(s) ? '' : 'off'}"><span>${esc(s.name)}<br><span class="val">${s.res} m grid${surveyOn(s) ? '' : ' · hidden by quality filter'}</span></span>${starHtml(starsOf(s.res))}</li>`).join('');
-}
-renderQuality(); renderAreas(); renderSurveyList();
+function closeUser(){ $('userPanel').hidden = true; $('userBtn').setAttribute('aria-expanded', false); }
+$('userBtn').onclick = () => { if (!$('userPanel').hidden) return closeUser(); $('userPanel').hidden = false; $('userBtn').setAttribute('aria-expanded', true); closeQual(); if (innerWidth < 700) closeDrawer(); };
+$('userClose').onclick = closeUser;
+document.querySelectorAll('[data-sso]').forEach(b => b.onclick = () => {
+  $('ssoMsg').hidden = false;
+  $('ssoMsg').textContent = `${b.dataset.sso === 'Email' ? 'Email' : b.dataset.sso} sign-in isn't connected yet. It will work once identity management is set up.`;
+});
+$('pName').value = P.name || ''; $('pEmail').value = P.email || '';
+$('pName').oninput = e => { P.name = e.target.value; saveP(); renderUser(); };
+$('pEmail').oninput = e => { P.email = e.target.value; saveP(); };
+$('avatarFile').onchange = e => { const f = e.target.files[0]; if (!f) return; const img = new Image(); img.onload = () => {
+  const c = document.createElement('canvas'), s = 160, k = Math.max(s/img.width, s/img.height); c.width = c.height = s;
+  c.getContext('2d').drawImage(img, (s - img.width*k)/2, (s - img.height*k)/2, img.width*k, img.height*k);
+  P.img = c.toDataURL('image/jpeg', .85); saveP(); renderUser(); URL.revokeObjectURL(img.src); }; img.src = URL.createObjectURL(f); };
+$('avatarDel').onclick = () => { delete P.img; saveP(); renderUser(); };
+renderUser();
 
 /* ---------- mini map ---------- */
 let mini;
+const MINI_OFFSET = 7;  // the mini map sits this many zoom levels further out than the main map
 const miniStyle = () => isDark() ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11';
 const viewGeo = () => { const b = map.getBounds(); return {type:'Feature', properties:{}, geometry:{type:'Polygon', coordinates:[[[b.getWest(),b.getNorth()],[b.getEast(),b.getNorth()],[b.getEast(),b.getSouth()],[b.getWest(),b.getSouth()],[b.getWest(),b.getNorth()]]]}}; };
+const centreGeo = () => ({type:'Feature', properties:{}, geometry:{type:'Point', coordinates:map.getCenter().toArray()}});
+const miniZoom = () => Math.max(0, map.getZoom() - MINI_OFFSET);
 function syncMini(){
   if (!mini || $('mini').hidden) return;
-  mini.jumpTo({center:map.getCenter(), zoom:Math.max(0, map.getZoom() - 4.5)});
+  mini.jumpTo({center:map.getCenter(), zoom:miniZoom()});
   const s = mini.getSource('view'); if (s) s.setData(viewGeo());
+  const c = mini.getSource('centre'); if (c) c.setData(centreGeo());
 }
 function initMini(){
-  if (mini || typeof mapboxgl === 'undefined') return;
-  mini = new mapboxgl.Map({container:'miniMap', style:miniStyle(), interactive:false, attributionControl:false, center:map.getCenter(), zoom:Math.max(0, map.getZoom() - 4.5), projection:'mercator'});
+  if (mini) return;
+  mini = new mapboxgl.Map({container:'miniMap', style:miniStyle(), interactive:false, attributionControl:false, center:map.getCenter(), zoom:miniZoom(), projection:'mercator'});
   mini.on('style.load', () => {
     mini.addSource('view', {type:'geojson', data:viewGeo()});
+    mini.addSource('centre', {type:'geojson', data:centreGeo()});
     mini.addLayer({id:'view-fill', type:'fill', source:'view', paint:{'fill-color':'#d6127e', 'fill-opacity':.15}});
     mini.addLayer({id:'view-line', type:'line', source:'view', paint:{'line-color':'#d6127e', 'line-width':2}});
+    mini.addLayer({id:'view-dot', type:'circle', source:'centre', paint:{'circle-radius':3.5, 'circle-color':'#d6127e', 'circle-stroke-color':'#fff', 'circle-stroke-width':1.5}});
   });
   mini.on('error', e => console.warn('mini map', e.error));
   $('miniMap').addEventListener('click', e => { const r = $('miniMap').getBoundingClientRect(); map.easeTo({center:mini.unproject([e.clientX - r.left, e.clientY - r.top])}); });
 }
 map.on('move', syncMini);
 function placeMini(){
-  const el = $('mini'), w = el.offsetWidth || 230, h = el.offsetHeight || 170;
-  let p = S.miniPos;
-  document.body.classList.toggle('mini-br', !el.hidden && !p);
-  if (!p) { el.style.left = ''; el.style.top = ''; el.style.right = '12px'; el.style.bottom = '32px'; return; }
+  const el = $('mini'), w = el.offsetWidth || 230, h = el.offsetHeight || 170, p = S.miniPos;
+  if (!p) { Object.assign(el.style, {left:'', top:'', right:'12px', bottom:'34px'}); return; }
   const x = Math.max(8, Math.min(innerWidth - w - 8, p.x)), y = Math.max(8, Math.min(innerHeight - h - 8, p.y));
   Object.assign(el.style, {left:x + 'px', top:y + 'px', right:'auto', bottom:'auto'});
 }
 function setMini(on){
-  S.mini = on; $('mini').hidden = !on; if (!on) document.body.classList.remove('mini-br'); $('miniOn').checked = on; $('tMini').setAttribute('aria-pressed', on); save();
+  S.mini = on; $('mini').hidden = !on; $('miniOn').checked = on; $('tMini').setAttribute('aria-pressed', on); save();
   if (on) { placeMini(); initMini(); requestAnimationFrame(() => { mini && mini.resize(); syncMini(); }); }
 }
 $('miniOn').onchange = e => setMini(e.target.checked);
 $('tMini').onclick = () => setMini(!S.mini);
 $('miniClose').onclick = () => setMini(false);
-{ // drag the mini map by its title bar
+{
   let drag = null;
   $('miniBar').addEventListener('pointerdown', e => { if (e.target.closest('button')) return; const r = $('mini').getBoundingClientRect(); drag = {dx:e.clientX - r.left, dy:e.clientY - r.top}; $('miniBar').setPointerCapture(e.pointerId); });
   $('miniBar').addEventListener('pointermove', e => { if (!drag) return; S.miniPos = {x:e.clientX - drag.dx, y:e.clientY - drag.dy}; placeMini(); });
@@ -983,7 +1203,7 @@ $('miniClose').onclick = () => setMini(false);
 }
 
 /* ---------- admin mock ---------- */
-const DS = SURVEYS.filter(s => shown.includes(s)).map(s => ({n:s.name, r:s.res + ' m', q:starsOf(s.res), d:s.depths, s:'Published'}));
+const DS = Object.values(SURVEYS).map(s => ({n:s.name, r:s.res + ' m', q:starsOf(s.res), d:s.depths, s:'Published'}));
 const dsRows = () => $('dsRows').innerHTML = DS.map(d => `<tr><td>${esc(d.n)}</td><td>${esc(d.r)}</td><td>${d.q ? starHtml(d.q) : ''}</td><td>${esc(d.d)}</td><td>${esc(d.s)}</td></tr>`).join('');
 dsRows();
 $('openAdmin').onclick = () => $('admin').hidden = false;
@@ -991,7 +1211,7 @@ $('closeAdmin').onclick = () => $('admin').hidden = true;
 $('admin').onclick = e => { if (e.target === $('admin')) $('admin').hidden = true; };
 const STEPS = [['Upload to storage','Resumable upload to a bucket'],['Validate','Read with GDAL; check CRS, vertical datum, nodata'],
   ['Reproject','Warp to Web Mercator (EPSG:3857)'],['Cloud-Optimised GeoTIFF','Tiled, overviews, compressed'],
-  ['Depth tiles + seabed hillshade','Terrain-RGB tiles, zoom 10 to 15; shading below sea level only'],['Contours','1 m lines as GeoJSON / vector tiles'],['Rate quality','Stars from grid resolution'],['Publish','Add to the map catalogue']];
+  ['Depth tiles + seabed hillshade','Terrain-RGB tiles, zoom 10 to 15; shading below sea level only'],['Contours','1 m lines as GeoJSON / vector tiles'],['Rate quality','Stars from grid resolution'],['Assign area','Country, state and area preset'],['Publish','Add to the map catalogue']];
 let jobT;
 function runJob(f){
   clearTimeout(jobT); $('job').hidden = false; $('jobName').textContent = f.name; $('jobSize').textContent = (f.size/1048576).toFixed(1) + ' MB';
@@ -1009,14 +1229,18 @@ const drop = $('drop');
 ['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', e => e.dataTransfer.files[0] && runJob(e.dataTransfer.files[0]));
 
-/* ---------- layout ---------- */
+/* ---------- start ---------- */
 function pad(){
-  const wide = innerWidth >= 700, left = wide && S.menuOpen ? 384 : 0;
-  const right = (wide && S.layersOpen ? 300 + 8 : 0) + 74;
-  document.documentElement.style.setProperty('--padL', left + 'px');
-  map.setPadding({top:0, bottom:0, left, right:wide ? right : 0});
+  const wide = innerWidth >= 700;
+  const left = wide ? ($('drawer').hidden ? 70 : 436) : 0;
+  document.documentElement.style.setProperty('--padL', (wide && !$('drawer').hidden ? 430 : 0) + 'px');
+  const cur = map.getPadding();
+  if (cur.left !== left || cur.right !== (wide ? 70 : 0)) map.setPadding({top:0, bottom:0, left, right: wide ? 70 : 0});
 }
-setMenu(S.menuOpen); setLayers(S.layersOpen); setMini(S.mini);
+setMini(S.mini); setCoords(S.coords); applyTerrain(); renderQualBtn(); renderArea();
+if (S.area) { if (AREAS[S.area].surveys.includes('pg2016')) loadPG(); }
+else openDrawer('area');
+pad();
 addEventListener('resize', () => { pad(); if (!$('mini').hidden) placeMini(); });
 }
 </script>
